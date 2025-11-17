@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { User, Package, ShoppingBag, Heart, Settings, MapPin, Bell } from "lucide-react"
+import { User, Package, ShoppingBag, Heart, Settings, MapPin, Bell, RotateCcw } from "lucide-react"
 
 export default function ProfilePage() {
   const { data: session } = useSession()
@@ -89,6 +89,12 @@ export default function ProfilePage() {
               <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
                 <Bell className="h-5 w-5 mr-2" />
                 Уведомления
+              </Button>
+            </Link>
+            <Link href="/profile/returns" className="block">
+              <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
+                <Package className="h-5 w-5 mr-2" />
+                Возвраты
               </Button>
             </Link>
             {session.user?.role === "ADMIN" && (

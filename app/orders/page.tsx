@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Package } from "lucide-react"
+import { Package, RotateCcw } from "lucide-react"
 import Image from "next/image"
 
 interface OrderItem {
@@ -182,6 +182,16 @@ export default function OrdersPage() {
                       <span className="text-muted-foreground">{order.shippingAddress}</span>
                     </p>
                   </div>
+                  {order.status === "DELIVERED" && (
+                    <div className="pt-4 border-t">
+                      <Link href={`/orders/${order.id}/return`}>
+                        <Button variant="outline" className="w-full hover:bg-orange-50 hover:border-orange-300 hover:text-orange-600">
+                          <RotateCcw className="h-4 w-4 mr-2" />
+                          Вернуть заказ
+                        </Button>
+                      </Link>
+                    </div>
+                  )}
                 </CardContent>
               </Card>
             )

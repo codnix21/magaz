@@ -7,6 +7,12 @@ export interface User {
   name: string | null
   password: string
   role: string
+  phone?: string | null
+  emailVerified?: boolean
+  phoneVerified?: boolean
+  oauthProvider?: string | null
+  oauthId?: string | null
+  avatar?: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -213,11 +219,22 @@ export async function createUser(data: {
   password: string
   name?: string
   role?: string
+  oauthProvider?: string | null
+  oauthId?: string | null
 }): Promise<User> {
   const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   await pool.execute(
-    'INSERT INTO User (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
-    [id, data.email, data.password, data.name || null, data.role || 'USER']
+    'INSERT INTO User (id, email, password, name, role, oauthProvider, oauthId, emailVerified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [
+      id, 
+      data.email, 
+      data.password, 
+      data.name || null, 
+      data.role || 'USER',
+      data.oauthProvider || null,
+      data.oauthId || null,
+      data.oauthProvider ? true : false
+    ]
   )
   
   const [rows] = await pool.execute(
@@ -1451,5 +1468,154 @@ export async function getUnreadNotificationCount(userId: string): Promise<number
   ) as any[]
   
   return rows[0]?.count || 0
+}
+
+// ==================== ВОЗВРАТЫ ====================
+
+export async function createOrderReturn(data: {
+  orderId: string
+  userId: string
+  reason?: string | null
+  refundAmount: number
+}): Promise<OrderReturn> {
+  const id = `return_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  await pool.execute(
+    'INSERT INTO OrderReturn (id, orderId, userId, reason, refundAmount, status, refundStatus) VALUES (?, ?, ?, ?, ?, "PENDING", "PENDING")',
+    [id, data.orderId, data.userId, data.reason || null, data.refundAmount]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM OrderReturn WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+export async function findOrderReturns(userId?: string, admin: boolean = false): Promise<OrderReturn[]> {
+  let sql = `
+    SELECT r.*, 
+           o.id as order_id, o.total as order_total, o.status as order_status,
+           u.email as user_email, u.name as user_name
+    FROM OrderReturn r
+    JOIN \`Order\` o ON r.orderId = o.id
+    JOIN User u ON r.userId = u.id
+    WHERE 1=1
+  `
+  const params: any[] = []
+  
+  if (!admin && userId) {
+    sql += ' AND r.userId = ?'
+    params.push(userId)
+  }
+  
+  sql += ' ORDER BY r.createdAt DESC'
+  
+  const [rows] = await pool.execute(sql, params) as any[]
+  
+  return rows.map(row => ({
+    id: row.id,
+    orderId: row.orderId,
+    userId: row.userId,
+    reason: row.reason,
+    status: row.status,
+    refundAmount: row.refundAmount,
+    refundStatus: row.refundStatus,
+    adminComment: row.adminComment,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    order: {
+      id: row.order_id,
+      total: row.order_total,
+      status: row.order_status,
+    },
+    user: {
+      email: row.user_email,
+      name: row.user_name,
+    },
+  })) as any[]
+}
+
+export async function findOrderReturnById(id: string, userId?: string): Promise<OrderReturn | null> {
+  let sql = `
+    SELECT r.*, 
+           o.id as order_id, o.total as order_total, o.status as order_status,
+           u.email as user_email, u.name as user_name
+    FROM OrderReturn r
+    JOIN \`Order\` o ON r.orderId = o.id
+    JOIN User u ON r.userId = u.id
+    WHERE r.id = ?
+  `
+  const params: any[] = [id]
+  
+  if (userId) {
+    sql += ' AND r.userId = ?'
+    params.push(userId)
+  }
+  
+  const [rows] = await pool.execute(sql, params) as any[]
+  
+  if (rows.length === 0) {
+    return null
+  }
+  
+  const row = rows[0]
+  return {
+    id: row.id,
+    orderId: row.orderId,
+    userId: row.userId,
+    reason: row.reason,
+    status: row.status,
+    refundAmount: row.refundAmount,
+    refundStatus: row.refundStatus,
+    adminComment: row.adminComment,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    order: {
+      id: row.order_id,
+      total: row.order_total,
+      status: row.order_status,
+    },
+    user: {
+      email: row.user_email,
+      name: row.user_name,
+    },
+  } as any
+}
+
+export async function updateOrderReturnStatus(
+  id: string,
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED',
+  adminComment?: string | null
+): Promise<OrderReturn> {
+  await pool.execute(
+    'UPDATE OrderReturn SET status = ?, adminComment = ? WHERE id = ?',
+    [status, adminComment || null, id]
+  )
+  
+  const return_ = await findOrderReturnById(id)
+  if (!return_) {
+    throw new Error('Return not found')
+  }
+  
+  return return_
+}
+
+export async function updateOrderReturnRefundStatus(
+  id: string,
+  refundStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+): Promise<OrderReturn> {
+  await pool.execute(
+    'UPDATE OrderReturn SET refundStatus = ? WHERE id = ?',
+    [refundStatus, id]
+  )
+  
+  const return_ = await findOrderReturnById(id)
+  if (!return_) {
+    throw new Error('Return not found')
+  }
+  
+  return return_
 }
 
