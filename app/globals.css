@@ -85,6 +85,52 @@
   .smooth-shadow-lg {
     box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
   }
+
+  /* Улучшенные анимации */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slideIn {
+    from {
+      opacity: 0;
+      transform: translateX(-20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  .animate-fade-in {
+    animation: fadeIn 0.5s ease-out;
+  }
+
+  .animate-slide-in {
+    animation: slideIn 0.5s ease-out;
+  }
+
+  /* Градиентные кнопки */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300;
+  }
+
+  /* Улучшенные карточки */
+  .card-modern {
+    @apply bg-white/90 backdrop-blur-md border-2 border-blue-100/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 rounded-xl overflow-hidden;
+  }
+
+  /* Градиентный фон */
+  .bg-gradient-modern {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50;
+  }
 }
 
 

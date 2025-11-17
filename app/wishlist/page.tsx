@@ -111,37 +111,37 @@ export default function WishlistPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container py-12">
-        <div className="mb-8">
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+      <div className="container py-6 sm:py-8 px-4 sm:px-6">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
             Избранное
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm sm:text-base text-muted-foreground">
             Ваши любимые товары ({wishlist.length})
           </p>
         </div>
 
         {wishlist.length === 0 ? (
-          <Card className="p-12 text-center">
+          <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
             <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
             <h2 className="text-2xl font-semibold mb-2">Избранное пусто</h2>
             <p className="text-muted-foreground mb-6">
               Добавьте товары в избранное, чтобы быстро найти их позже
             </p>
             <Link href="/products">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
                 Перейти к товарам
               </Button>
             </Link>
           </Card>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {wishlist.map((item) => {
               const finalPrice = calculatePrice(item.product)
               const hasDiscount = item.product.discountPercent && item.product.discountPercent > 0
 
               return (
-                <Card key={item.id} className="flex flex-col group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 overflow-hidden">
+                <Card key={item.id} className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-2">
                   <div className="relative w-full h-64 overflow-hidden">
                     <Link href={`/products/${item.product.id}`}>
                       <Image

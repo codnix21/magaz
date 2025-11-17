@@ -8,8 +8,9 @@ import { Footer } from "@/components/footer"
 const inter = Inter({ subsets: ["latin", "cyrillic"] })
 
 export const metadata: Metadata = {
-  title: "Интернет-магазин",
-  description: "Полноценный интернет-магазин с современным дизайном",
+  title: "Интернет-магазин | Лучшие товары по выгодным ценам",
+  description: "Полнофункциональный интернет-магазин с современным дизайном. Широкий ассортимент товаров, удобная корзина, быстрая доставка и безопасная оплата.",
+  keywords: "интернет-магазин, покупки онлайн, товары, доставка, оплата",
 }
 
 export default function RootLayout({

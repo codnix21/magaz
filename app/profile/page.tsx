@@ -1,5 +1,6 @@
 "use client"
 
+import { useEffect } from "react"
 import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import Link from "next/link"
@@ -8,11 +9,26 @@ import { Button } from "@/components/ui/button"
 import { User, Package, ShoppingBag, Heart, Settings, MapPin, Bell, RotateCcw } from "lucide-react"
 
 export default function ProfilePage() {
-  const { data: session } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
 
+  useEffect(() => {
+    if (status === "unauthenticated") {
+      router.push("/auth/signin")
+    }
+  }, [status, router])
+
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-lg text-muted-foreground">Загрузка...</p>
+        </div>
+      </div>
+    )
+  }
+
   if (!session) {
-    router.push("/auth/signin")
     return null
   }
 
@@ -93,7 +109,7 @@ export default function ProfilePage() {
             </Link>
             <Link href="/profile/returns" className="block">
               <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
-                <Package className="h-5 w-5 mr-2" />
+                <RotateCcw className="h-5 w-5 mr-2" />
                 Возвраты
               </Button>
             </Link>
