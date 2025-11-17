@@ -15,6 +15,7 @@ import { Separator } from "@/components/ui/separator"
 function OAuthButtons() {
   const [hasGoogle, setHasGoogle] = useState(false)
   const [hasFacebook, setHasFacebook] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
     // Проверяем наличие провайдеров через API
@@ -27,7 +28,15 @@ function OAuthButtons() {
       .catch(() => {
         // Если ошибка, просто не показываем кнопки
       })
+      .finally(() => {
+        setLoading(false)
+      })
   }, [])
+
+  // Показываем загрузку только если есть хотя бы один провайдер
+  if (loading) {
+    return null // Можно добавить скелетон, но обычно загрузка мгновенная
+  }
 
   if (!hasGoogle && !hasFacebook) {
     return null
