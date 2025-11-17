@@ -361,10 +361,10 @@ export default function CheckoutPage() {
 
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <div className="container py-6 sm:py-8 px-4 sm:px-6">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+    <div className="container py-8 sm:py-12 px-4 sm:px-6">
+      <div className="mb-8 sm:mb-12 animate-fade-in">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
           Оформление заказа
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">Завершите оформление вашего заказа</p>
@@ -372,10 +372,12 @@ export default function CheckoutPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
-            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
-              <CardTitle className="text-xl font-bold flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
+          <Card className="card-glass border-blue-200/60 animate-fade-in">
+            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
+              <CardTitle className="text-xl font-black text-white flex items-center gap-3">
+                <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl">
+                  <MapPin className="h-5 w-5 text-white" />
+                </div>
                 Адрес доставки
               </CardTitle>
             </CardHeader>
@@ -737,9 +739,9 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
-            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
-              <CardTitle className="text-xl font-bold">Ваш заказ</CardTitle>
+          <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
+              <CardTitle className="text-xl font-black text-white">Ваш заказ</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
@@ -778,7 +780,7 @@ export default function CheckoutPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                className="w-full btn-gradient rounded-xl font-bold text-lg py-7"
                 size="lg"
                 disabled={submitting || processingPayment}
               >

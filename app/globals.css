@@ -64,29 +64,56 @@
     text-wrap: balance;
   }
   
+  /* Glassmorphism эффекты */
   .glass-effect {
-    background: rgba(255, 255, 255, 0.8);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.3);
   }
   
+  .glass-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  /* Градиенты */
   .gradient-text {
     @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent;
   }
   
-  .card-hover {
-    @apply transition-all duration-300 hover:shadow-2xl hover:-translate-y-1;
+  .gradient-text-rainbow {
+    @apply bg-gradient-to-r from-pink-500 via-violet-500 to-indigo-500 bg-clip-text text-transparent;
   }
   
+  .gradient-bg-primary {
+    @apply bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600;
+  }
+  
+  .gradient-bg-soft {
+    @apply bg-gradient-to-br from-slate-50 via-blue-50/50 to-indigo-50/50;
+  }
+  
+  /* Тени */
   .smooth-shadow {
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08), 0 1px 4px rgba(0, 0, 0, 0.04);
   }
   
   .smooth-shadow-lg {
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.06);
+  }
+  
+  .glow-shadow {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3), 0 0 40px rgba(99, 102, 241, 0.2);
+  }
+  
+  .glow-shadow-purple {
+    box-shadow: 0 0 30px rgba(147, 51, 234, 0.4), 0 0 60px rgba(168, 85, 247, 0.2);
   }
 
-  /* Улучшенные анимации */
+  /* Анимации */
   @keyframes fadeIn {
     from {
       opacity: 0;
@@ -109,22 +136,65 @@
     }
   }
 
+  @keyframes slideInUp {
+    from {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   @keyframes float {
     0%, 100% {
-      transform: translateY(0px);
+      transform: translateY(0px) rotate(0deg);
     }
     50% {
-      transform: translateY(-20px);
+      transform: translateY(-20px) rotate(2deg);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes pulse-glow {
+    0%, 100% {
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    50% {
+      box-shadow: 0 0 40px rgba(59, 130, 246, 0.6);
+    }
+  }
+
+  @keyframes gradient-shift {
+    0%, 100% {
+      background-position: 0% 50%;
+    }
+    50% {
+      background-position: 100% 50%;
     }
   }
 
   .animate-fade-in {
-    animation: fadeIn 0.8s ease-out forwards;
+    animation: fadeIn 0.6s ease-out forwards;
     opacity: 0;
   }
 
   .animate-slide-in {
-    animation: slideIn 0.8s ease-out forwards;
+    animation: slideIn 0.6s ease-out forwards;
+    opacity: 0;
+  }
+
+  .animate-slide-in-up {
+    animation: slideInUp 0.6s ease-out forwards;
     opacity: 0;
   }
 
@@ -132,19 +202,79 @@
     animation: float 6s ease-in-out infinite;
   }
 
-  /* Градиентные кнопки */
-  .btn-gradient {
-    @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300;
+  .animate-shimmer {
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.4) 50%,
+      transparent 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite;
   }
 
-  /* Улучшенные карточки */
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-gradient {
+    background-size: 200% 200%;
+    animation: gradient-shift 3s ease infinite;
+  }
+
+  /* Карточки */
+  .card-hover {
+    @apply transition-all duration-500 hover:shadow-2xl hover:-translate-y-2 hover:scale-[1.02];
+  }
+  
   .card-modern {
-    @apply bg-white/90 backdrop-blur-md border-2 border-blue-100/50 shadow-xl hover:shadow-2xl transition-all duration-300 hover:-translate-y-1 rounded-xl overflow-hidden;
+    @apply bg-white/95 backdrop-blur-xl border border-blue-100/60 shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 rounded-2xl overflow-hidden;
+  }
+  
+  .card-glass {
+    @apply glass-effect rounded-2xl shadow-xl hover:shadow-2xl transition-all duration-500 hover:-translate-y-1;
   }
 
-  /* Градиентный фон */
+  /* Кнопки */
+  .btn-gradient {
+    @apply bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105;
+  }
+  
+  .btn-glow {
+    @apply btn-gradient animate-pulse-glow;
+  }
+
+  /* Фоны */
   .bg-gradient-modern {
-    @apply bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50;
+    @apply bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/30;
+  }
+  
+  .bg-mesh {
+    background-image: 
+      radial-gradient(at 0% 0%, rgba(59, 130, 246, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 0%, rgba(99, 102, 241, 0.1) 0px, transparent 50%),
+      radial-gradient(at 100% 100%, rgba(147, 51, 234, 0.1) 0px, transparent 50%),
+      radial-gradient(at 0% 100%, rgba(59, 130, 246, 0.1) 0px, transparent 50%);
+  }
+  
+  /* Скроллбар */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: linear-gradient(to bottom, #3b82f6, #6366f1);
+    border-radius: 10px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(to bottom, #2563eb, #4f46e5);
   }
 }
 

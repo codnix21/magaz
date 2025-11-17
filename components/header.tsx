@@ -13,13 +13,13 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/98 backdrop-blur-xl supports-[backdrop-filter]:bg-white/90 shadow-lg shadow-blue-500/10 border-b-blue-100/50 transition-all duration-300 hover:shadow-xl hover:shadow-blue-500/20">
+    <header className="sticky top-0 z-50 w-full border-b glass-effect supports-[backdrop-filter]:bg-white/95 shadow-xl shadow-blue-500/10 border-b-blue-200/60 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
-        <Link href="/" className="flex items-center space-x-2 group">
-          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-2.5 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-blue-500/30">
-            <ShoppingCart className="h-5 w-5 text-white" />
+        <Link href="/" className="flex items-center space-x-3 group">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-3 rounded-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl shadow-blue-500/40 glow-shadow animate-pulse-glow">
+            <ShoppingCart className="h-6 w-6 text-white" />
           </div>
-          <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+          <span className="text-2xl sm:text-3xl font-black gradient-text animate-gradient">
             Магазин
           </span>
         </Link>

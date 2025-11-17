@@ -33,21 +33,21 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <div className="container py-6 sm:py-8 px-4 sm:px-6">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+    <div className="container py-8 sm:py-12 px-4 sm:px-6">
+      <div className="mb-8 sm:mb-12 animate-fade-in">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
           Профиль
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">Ваша личная информация</p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
-            <CardTitle className="flex items-center gap-2 text-xl font-bold">
-              <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-2.5 rounded-xl shadow-lg">
-                <User className="h-5 w-5 text-white" />
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8">
+        <Card className="card-glass border-blue-200/60 animate-fade-in">
+          <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
+            <CardTitle className="flex items-center gap-3 text-xl font-black text-white">
+              <div className="bg-white/20 backdrop-blur-md p-3 rounded-xl shadow-lg">
+                <User className="h-6 w-6 text-white" />
               </div>
               Информация о профиле
             </CardTitle>
@@ -72,9 +72,9 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300">
-          <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
-            <CardTitle className="text-xl font-bold">Быстрые действия</CardTitle>
+        <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
+            <CardTitle className="text-xl font-black text-white">Быстрые действия</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-6">
             <Link href="/orders" className="block">

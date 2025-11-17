@@ -26,9 +26,9 @@ export default async function HomePage() {
   const products = await getProducts()
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-16 sm:py-20 md:py-28 lg:py-32 mb-8 sm:mb-12 md:mb-16">
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-20 sm:py-24 md:py-32 lg:py-40 mb-12 sm:mb-16 md:mb-20 animate-gradient">
         {/* Animated background pattern */}
         <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-20 animate-pulse"></div>
         
@@ -40,25 +40,26 @@ export default async function HomePage() {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }}></div>
         
         <div className="container relative z-10">
-          <div className="max-w-5xl mx-auto text-center animate-fade-in">
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold mb-6 sm:mb-8 px-4 leading-tight">
-              <span className="block mb-3 animate-slide-in">Добро пожаловать в</span>
-              <span className="block bg-gradient-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-transparent drop-shadow-2xl animate-slide-in" style={{ animationDelay: '0.2s' }}>
+          <div className="max-w-6xl mx-auto text-center animate-fade-in">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-8 sm:mb-10 px-4 leading-tight tracking-tight">
+              <span className="block mb-4 animate-slide-in text-white/90">Добро пожаловать в</span>
+              <span className="block bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent drop-shadow-2xl animate-slide-in glow-shadow-purple" style={{ animationDelay: '0.2s' }}>
                 наш магазин!
               </span>
             </h1>
-            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-10 sm:mb-12 text-blue-50/90 px-4 max-w-3xl mx-auto leading-relaxed font-medium animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-12 sm:mb-16 text-white/95 px-4 max-w-4xl mx-auto leading-relaxed font-semibold animate-fade-in" style={{ animationDelay: '0.4s' }}>
               Откройте для себя лучшие товары по выгодным ценам
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 justify-center px-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+            <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 justify-center px-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
               <Link href="/products">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 hover:scale-110 text-lg sm:text-xl px-10 py-7 shadow-2xl shadow-blue-500/40 transition-all duration-300 font-bold rounded-xl hover:shadow-blue-500/60">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 hover:scale-110 text-lg sm:text-xl px-12 py-8 shadow-2xl shadow-blue-500/50 transition-all duration-300 font-bold rounded-2xl hover:shadow-blue-500/70 glow-shadow">
                   Посмотреть все товары
+                  <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">→</span>
                 </Button>
               </Link>
               <Link href="/products?promo=true">
-                <Button size="lg" variant="outline" className="border-2 border-white/90 text-white hover:bg-white/30 hover:border-white hover:scale-110 text-lg sm:text-xl px-10 py-7 backdrop-blur-md transition-all duration-300 font-bold rounded-xl bg-white/10">
-                  <Gift className="h-5 w-5 mr-2 inline" />
+                <Button size="lg" variant="outline" className="border-3 border-white/95 text-white hover:bg-white/20 hover:border-white hover:scale-110 text-lg sm:text-xl px-12 py-8 backdrop-blur-xl transition-all duration-300 font-bold rounded-2xl bg-white/15 glass-effect">
+                  <Gift className="h-6 w-6 mr-2 inline animate-float" />
                   Акции и скидки
                 </Button>
               </Link>
@@ -68,16 +69,19 @@ export default async function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-40 bg-gradient-to-t from-slate-50 via-slate-50/90 to-transparent"></div>
       </section>
 
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
+      <div className="container py-8 sm:py-12 px-4 sm:px-6">
       <section className="animate-fade-in">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-8 sm:mb-10 gap-4">
-          <div className="flex items-center gap-3">
-            <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-3 rounded-xl shadow-lg">
-              <Sparkles className="h-6 w-6 text-white" />
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-10 sm:mb-12 gap-4">
+          <div className="flex items-center gap-4">
+            <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-4 rounded-2xl shadow-xl glow-shadow animate-pulse-glow">
+              <Sparkles className="h-7 w-7 text-white" />
             </div>
-            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
-              Популярные товары
-            </h2>
+            <div>
+              <h2 className="text-4xl sm:text-5xl md:text-6xl font-black bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent animate-gradient">
+                Популярные товары
+              </h2>
+              <p className="text-sm sm:text-base text-muted-foreground mt-1">Лучшие предложения для вас</p>
+            </div>
           </div>
           <Link href="/products">
             <Button variant="outline" className="group w-full sm:w-auto border-2 hover:bg-blue-50 hover:border-blue-400 hover:scale-105 transition-all duration-300 font-semibold rounded-xl">
@@ -110,7 +114,7 @@ export default async function HomePage() {
               return (
                 <Card 
                   key={product.id} 
-                  className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/90 backdrop-blur-sm hover:-translate-y-3 rounded-2xl animate-fade-in"
+                  className="flex flex-col group card-modern hover:border-blue-300/80 overflow-hidden animate-fade-in"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="relative w-full h-64 overflow-hidden">
@@ -170,10 +174,11 @@ export default async function HomePage() {
                       </p>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex gap-2 pt-0 pb-4 px-4">
+                  <CardFooter className="flex gap-2 pt-0 pb-6 px-6">
                     <Link href={`/products/${product.id}`} className="flex-1">
-                      <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold rounded-xl">
+                      <Button className="w-full btn-gradient font-bold rounded-xl text-base py-6">
                         Подробнее
+                        <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">→</span>
                       </Button>
                     </Link>
                   </CardFooter>

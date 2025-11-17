@@ -44,11 +44,11 @@ export default function SignUpPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex items-center justify-center py-12">
-      <Card className="w-full max-w-md shadow-2xl border-2 border-blue-100">
-        <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-          <CardTitle className="text-2xl text-white">Регистрация</CardTitle>
-          <CardDescription className="text-blue-100">
+    <div className="min-h-screen bg-gradient-modern bg-mesh flex items-center justify-center py-12">
+      <Card className="w-full max-w-md card-glass border-blue-200/60 shadow-2xl animate-fade-in">
+        <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-2xl glow-shadow">
+          <CardTitle className="text-3xl text-white font-black">Регистрация</CardTitle>
+          <CardDescription className="text-white/90 text-base mt-2">
             Создайте новый аккаунт для начала покупок
           </CardDescription>
         </CardHeader>
@@ -98,7 +98,7 @@ export default function SignUpPage() {
           <CardFooter className="flex flex-col space-y-4">
             <Button 
               type="submit" 
-              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg" 
+              className="w-full btn-gradient rounded-xl font-bold text-lg py-6" 
               disabled={loading}
               size="lg"
             >

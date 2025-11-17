@@ -121,18 +121,18 @@ export default function NotificationsPage() {
   const unreadCount = notifications.filter(n => !n.read).length
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
-        <div className="mb-6 sm:mb-8">
-          <Link href="/profile">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+      <div className="container py-8 sm:py-12 px-4 sm:px-6">
+        <div className="mb-8 sm:mb-12 animate-fade-in">
+          <Link href="/profile" className="inline-block mb-6">
+            <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Назад к профилю
             </Button>
           </Link>
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
                 Уведомления
               </h1>
               <p className="text-sm sm:text-base text-muted-foreground">
@@ -142,10 +142,9 @@ export default function NotificationsPage() {
             {unreadCount > 0 && (
               <Button
                 onClick={markAllAsRead}
-                variant="outline"
-                className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700"
+                className="btn-gradient rounded-xl font-semibold px-6 py-6"
               >
-                <CheckCheck className="h-4 w-4 mr-2" />
+                <CheckCheck className="h-5 w-5 mr-2" />
                 Отметить все как прочитанные
               </Button>
             )}
@@ -153,9 +152,9 @@ export default function NotificationsPage() {
         </div>
 
         {notifications.length === 0 ? (
-          <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
+          <Card className="p-12 text-center card-glass border-blue-200/60 animate-fade-in">
             <Bell className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-xl font-semibold mb-2">Нет уведомлений</p>
+            <p className="text-xl font-bold mb-2">Нет уведомлений</p>
             <p className="text-muted-foreground">
               Здесь будут отображаться уведомления о ваших заказах и акциях
             </p>
@@ -165,9 +164,9 @@ export default function NotificationsPage() {
             {notifications.map((notification) => (
               <Card
                 key={notification.id}
-                className={`shadow-xl border-2 transition-all hover:shadow-2xl ${
+                className={`card-modern transition-all animate-fade-in ${
                   notification.read
-                    ? "border-gray-200 bg-white"
+                    ? "border-gray-200/60"
                     : "border-blue-400 bg-blue-50/50"
                 }`}
               >

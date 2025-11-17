@@ -103,11 +103,11 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
   }
 
   return (
-    <Card className="mt-8">
-      <CardHeader>
+    <Card className="mt-8 card-glass border-blue-200/60 animate-fade-in">
+      <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="text-2xl mb-2">Отзывы и рейтинги</CardTitle>
+            <CardTitle className="text-2xl mb-2 font-black text-white">Отзывы и рейтинги</CardTitle>
             <div className="flex items-center gap-2">
               <div className="flex items-center">
                 {[...Array(5)].map((_, i) => (
@@ -121,12 +121,12 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
                   />
                 ))}
               </div>
-              <span className="text-lg font-semibold">{rating.average.toFixed(1)}</span>
-              <span className="text-muted-foreground">({rating.count} отзывов)</span>
+              <span className="text-lg font-black text-white">{rating.average.toFixed(1)}</span>
+              <span className="text-white/90">({rating.count} отзывов)</span>
             </div>
           </div>
           {session && !showForm && (
-            <Button onClick={() => setShowForm(true)} className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <Button onClick={() => setShowForm(true)} className="btn-gradient rounded-xl font-bold shadow-xl">
               Написать отзыв
             </Button>
           )}
@@ -134,9 +134,9 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
       </CardHeader>
       <CardContent>
         {showForm && session && (
-          <Card className="mb-6 border-2 border-blue-200">
-            <CardHeader>
-              <CardTitle className="text-lg">Ваш отзыв</CardTitle>
+          <Card className="mb-6 card-glass border-blue-200/60">
+            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-xl">
+              <CardTitle className="text-lg font-bold">Ваш отзыв</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div>
@@ -173,11 +173,11 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
                 <Button
                   onClick={handleSubmitReview}
                   disabled={submitting}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                  className="btn-gradient rounded-xl font-semibold"
                 >
                   {submitting ? "Отправка..." : "Отправить"}
                 </Button>
-                <Button variant="outline" onClick={() => setShowForm(false)}>
+                <Button variant="outline" onClick={() => setShowForm(false)} className="rounded-xl">
                   Отмена
                 </Button>
               </div>
@@ -194,7 +194,7 @@ export function ReviewsSection({ productId }: ReviewsSectionProps) {
         ) : (
           <div className="space-y-4">
             {reviews.map((review) => (
-              <Card key={review.id} className="border-l-4 border-l-blue-500">
+              <Card key={review.id} className="card-glass border-l-4 border-l-blue-500 hover:border-l-blue-600 transition-colors">
                 <CardContent className="pt-6">
                   <div className="flex items-start justify-between mb-2">
                     <div className="flex items-center gap-3">

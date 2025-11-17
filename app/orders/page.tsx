@@ -81,7 +81,7 @@ export default function OrdersPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
     <div className="container py-6 sm:py-8 px-4 sm:px-6">
       <div className="mb-6 sm:mb-8">
         <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
@@ -93,14 +93,14 @@ export default function OrdersPage() {
       </div>
 
       {orders.length === 0 ? (
-        <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
+        <Card className="p-12 text-center card-glass border-blue-200/60 animate-fade-in">
           <Package className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-          <p className="text-xl font-semibold mb-2">У вас пока нет заказов</p>
+          <p className="text-xl font-bold mb-2">У вас пока нет заказов</p>
           <p className="text-muted-foreground mb-6">
             Начните делать покупки, чтобы увидеть свои заказы здесь
           </p>
           <Link href="/products">
-            <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700">
+            <Button className="btn-gradient rounded-xl font-bold px-8 py-6">
               Перейти к товарам
             </Button>
           </Link>
@@ -118,13 +118,17 @@ export default function OrdersPage() {
             const statusColor = statusColors[order.status] || "bg-gray-100 text-gray-800 border-gray-300"
             
             return (
-              <Card key={order.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-1">
-                <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+              <Card key={order.id} className="card-modern hover:border-blue-300/80 overflow-hidden animate-fade-in">
+                <div className="gradient-bg-primary text-white border-b-2 border-white/20">
                   <CardHeader>
                     <div className="flex justify-between items-start flex-wrap gap-4">
                       <div>
-                        <CardTitle className="text-2xl mb-2">Заказ #{order.id.slice(-8)}</CardTitle>
-                        <p className="text-sm text-muted-foreground">
+                        <Link href={`/orders/${order.id}`}>
+                          <CardTitle className="text-2xl mb-2 font-black text-white hover:text-blue-200 transition-colors cursor-pointer">
+                            Заказ #{order.id.slice(-8)}
+                          </CardTitle>
+                        </Link>
+                        <p className="text-sm text-white/90">
                           {new Date(order.createdAt).toLocaleDateString("ru-RU", {
                             year: "numeric",
                             month: "long",
@@ -135,7 +139,7 @@ export default function OrdersPage() {
                         </p>
                       </div>
                       <div className="text-right">
-                        <p className="text-3xl font-bold text-blue-600 mb-2">
+                        <p className="text-3xl font-black text-white mb-2">
                           {order.total.toLocaleString("ru-RU")} ₽
                         </p>
                         <span className={`px-3 py-1 rounded-full text-xs font-semibold border-2 ${statusColor}`}>

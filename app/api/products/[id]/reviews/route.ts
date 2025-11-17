@@ -3,13 +3,16 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { findReviewsByProductId, getProductRating, createReview, deleteReview } from "@/lib/db-helpers"
 
+export const dynamic = 'force-dynamic'
+
 // Получить отзывы товара
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const { id: productId } = params
+    const resolvedParams = await Promise.resolve(params)
+    const { id: productId } = resolvedParams
 
     const [reviews, rating] = await Promise.all([
       findReviewsByProductId(productId),
@@ -29,7 +32,7 @@ export async function GET(
 // Создать отзыв
 export async function POST(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -41,7 +44,8 @@ export async function POST(
       )
     }
 
-    const { id: productId } = params
+    const resolvedParams = await Promise.resolve(params)
+    const { id: productId } = resolvedParams
     const body = await request.json()
     const { rating, comment } = body
 
@@ -72,7 +76,7 @@ export async function POST(
 // Удалить отзыв
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)

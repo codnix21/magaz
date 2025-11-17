@@ -420,8 +420,55 @@ export async function addToCart(userId: string, productId: string, quantity: num
       'UPDATE CartItem SET quantity = quantity + ? WHERE id = ?',
       [quantity, existing[0].id]
     )
-    const items = await findCartItems(userId)
-    return items.find(item => item.id === existing[0].id)!
+    // Получаем обновленный элемент напрямую без вызова findCartItems
+    const [updated] = await pool.execute(
+      `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
+              p.image as p_image, p.category as p_category, p.stock as p_stock,
+              p.description as p_description, p.discountPercent, p.originalPrice,
+              p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
+              v.id as variant_id, v.name as variant_name, v.value as variant_value, 
+              v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
+              v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
+       FROM CartItem ci
+       JOIN Product p ON ci.productId = p.id
+       LEFT JOIN ProductVariant v ON ci.variantId = v.id
+       WHERE ci.id = ?`,
+      [existing[0].id]
+    ) as any[]
+    const row = updated[0]
+    return {
+      id: row.id,
+      userId: row.userId,
+      productId: row.productId,
+      quantity: row.quantity,
+      variantId: row.variantId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      product: {
+        id: row.p_id,
+        name: row.p_name,
+        price: row.p_price,
+        image: row.p_image,
+        category: row.p_category,
+        stock: row.p_stock,
+        description: row.p_description,
+        discountPercent: row.discountPercent || 0,
+        originalPrice: row.originalPrice,
+        createdAt: row.p_createdAt,
+        updatedAt: row.p_updatedAt,
+      },
+      variant: row.variant_id ? {
+        id: row.variant_id,
+        productId: row.productId,
+        name: row.variant_name,
+        value: row.variant_value,
+        price: row.variant_price,
+        stock: row.variant_stock,
+        image: row.variant_image,
+        createdAt: row.variant_createdAt,
+        updatedAt: row.variant_updatedAt,
+      } : undefined,
+    }
   } else {
     // Создаем новую запись
     const id = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
@@ -429,8 +476,55 @@ export async function addToCart(userId: string, productId: string, quantity: num
       'INSERT INTO CartItem (id, userId, productId, quantity, variantId) VALUES (?, ?, ?, ?, ?)',
       [id, userId, productId, quantity, variantId]
     )
-    const items = await findCartItems(userId)
-    return items.find(item => item.id === id)!
+    // Получаем новый элемент напрямую без вызова findCartItems
+    const [newItem] = await pool.execute(
+      `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
+              p.image as p_image, p.category as p_category, p.stock as p_stock,
+              p.description as p_description, p.discountPercent, p.originalPrice,
+              p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
+              v.id as variant_id, v.name as variant_name, v.value as variant_value, 
+              v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
+              v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
+       FROM CartItem ci
+       JOIN Product p ON ci.productId = p.id
+       LEFT JOIN ProductVariant v ON ci.variantId = v.id
+       WHERE ci.id = ?`,
+      [id]
+    ) as any[]
+    const row = newItem[0]
+    return {
+      id: row.id,
+      userId: row.userId,
+      productId: row.productId,
+      quantity: row.quantity,
+      variantId: row.variantId,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+      product: {
+        id: row.p_id,
+        name: row.p_name,
+        price: row.p_price,
+        image: row.p_image,
+        category: row.p_category,
+        stock: row.p_stock,
+        description: row.p_description,
+        discountPercent: row.discountPercent || 0,
+        originalPrice: row.originalPrice,
+        createdAt: row.p_createdAt,
+        updatedAt: row.p_updatedAt,
+      },
+      variant: row.variant_id ? {
+        id: row.variant_id,
+        productId: row.productId,
+        name: row.variant_name,
+        value: row.variant_value,
+        price: row.variant_price,
+        stock: row.variant_stock,
+        image: row.variant_image,
+        createdAt: row.variant_createdAt,
+        updatedAt: row.variant_updatedAt,
+      } : undefined,
+    }
   }
 }
 
@@ -440,13 +534,55 @@ export async function updateCartItem(cartItemId: string, quantity: number): Prom
     [quantity, cartItemId]
   )
   
-  const [rows] = await pool.execute(
-    'SELECT * FROM CartItem WHERE id = ?',
+  // Получаем обновленный элемент напрямую без вызова findCartItems
+  const [updated] = await pool.execute(
+    `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
+            p.image as p_image, p.category as p_category, p.stock as p_stock,
+            p.description as p_description, p.discountPercent, p.originalPrice,
+            p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
+            v.id as variant_id, v.name as variant_name, v.value as variant_value, 
+            v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
+            v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
+     FROM CartItem ci
+     JOIN Product p ON ci.productId = p.id
+     LEFT JOIN ProductVariant v ON ci.variantId = v.id
+     WHERE ci.id = ?`,
     [cartItemId]
   ) as any[]
-  
-  const items = await findCartItems(rows[0].userId)
-  return items.find(item => item.id === cartItemId)!
+  const row = updated[0]
+  return {
+    id: row.id,
+    userId: row.userId,
+    productId: row.productId,
+    quantity: row.quantity,
+    variantId: row.variantId,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    product: {
+      id: row.p_id,
+      name: row.p_name,
+      price: row.p_price,
+      image: row.p_image,
+      category: row.p_category,
+      stock: row.p_stock,
+      description: row.p_description,
+      discountPercent: row.discountPercent || 0,
+      originalPrice: row.originalPrice,
+      createdAt: row.p_createdAt,
+      updatedAt: row.p_updatedAt,
+    },
+    variant: row.variant_id ? {
+      id: row.variant_id,
+      productId: row.productId,
+      name: row.variant_name,
+      value: row.variant_value,
+      price: row.variant_price,
+      stock: row.variant_stock,
+      image: row.variant_image,
+      createdAt: row.variant_createdAt,
+      updatedAt: row.variant_updatedAt,
+    } : undefined,
+  }
 }
 
 export async function deleteCartItem(cartItemId: string): Promise<void> {
@@ -474,43 +610,57 @@ export async function findOrders(userId?: string, admin: boolean = false): Promi
   
   const [rows] = await pool.execute(sql, params) as any[]
   
-  // Получаем orderItems для каждого заказа
-  const orders = await Promise.all(rows.map(async (row: any) => {
-    const [items] = await pool.execute(
-      `SELECT oi.*, p.name as 'product.name'
-       FROM OrderItem oi
-       JOIN Product p ON oi.productId = p.id
-       WHERE oi.orderId = ?`,
-      [row.id]
-    ) as any[]
-    
-    return {
-      id: row.id,
-      userId: row.userId,
-      total: row.total,
-      status: row.status,
-      shippingAddress: row.shippingAddress,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      user: {
-        email: row['user.email'],
-        name: row['user.name'],
-      },
-      orderItems: items.map((item: any) => ({
-        id: item.id,
-        orderId: item.orderId,
-        productId: item.productId,
-        quantity: item.quantity,
-        price: item.price,
-        createdAt: item.createdAt,
-        product: {
-          name: item['product.name'],
-        },
-      })),
-    }
-  }))
+  if (rows.length === 0) {
+    return []
+  }
   
-  return orders as any
+  // Получаем все orderItems одним запросом (убираем N+1 проблему)
+  const orderIds = rows.map((row: any) => row.id)
+  const [allItems] = await pool.execute(
+    `SELECT oi.*, p.name as 'product.name'
+     FROM OrderItem oi
+     JOIN Product p ON oi.productId = p.id
+     WHERE oi.orderId IN (${orderIds.map(() => '?').join(',')})
+     ORDER BY oi.orderId, oi.createdAt`,
+    orderIds
+  ) as any[]
+  
+  // Группируем items по orderId
+  const itemsByOrderId = new Map<string, any[]>()
+  for (const item of allItems) {
+    if (!itemsByOrderId.has(item.orderId)) {
+      itemsByOrderId.set(item.orderId, [])
+    }
+    itemsByOrderId.get(item.orderId)!.push(item)
+  }
+  
+  // Формируем результат
+  return rows.map((row: any) => ({
+    id: row.id,
+    userId: row.userId,
+    total: row.total,
+    status: row.status,
+    shippingAddress: row.shippingAddress,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+    user: {
+      email: row['user.email'],
+      name: row['user.name'],
+    },
+    orderItems: (itemsByOrderId.get(row.id) || []).map((item: any) => ({
+      id: item.id,
+      orderId: item.orderId,
+      productId: item.productId,
+      quantity: item.quantity,
+      price: item.price,
+      variantId: item.variantId,
+      variantName: item.variantName,
+      createdAt: item.createdAt,
+      product: {
+        name: item['product.name'],
+      },
+    })),
+  })) as any
 }
 
 export async function createOrder(data: {
@@ -627,11 +777,14 @@ export async function findOrderById(orderId: string, userId?: string): Promise<a
   
   const row = rows[0]
   
-  // Получаем orderItems
+  // Получаем orderItems с полной информацией о продуктах и вариантах
   const [items] = await pool.execute(
-    `SELECT oi.*, p.name as 'product.name'
+    `SELECT oi.*, 
+            p.id as p_id, p.name as p_name, p.image as p_image,
+            v.id as v_id, v.name as v_name, v.value as v_value
      FROM OrderItem oi
      JOIN Product p ON oi.productId = p.id
+     LEFT JOIN ProductVariant v ON oi.variantId = v.id
      WHERE oi.orderId = ?`,
     [orderId]
   ) as any[]
@@ -642,6 +795,9 @@ export async function findOrderById(orderId: string, userId?: string): Promise<a
     total: row.total,
     status: row.status,
     shippingAddress: row.shippingAddress,
+    shippingCost: row.shippingCost || 0,
+    paymentMethod: row.paymentMethod || 'cash',
+    comment: row.comment,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     user: {
@@ -652,12 +808,20 @@ export async function findOrderById(orderId: string, userId?: string): Promise<a
       id: item.id,
       orderId: item.orderId,
       productId: item.productId,
+      variantId: item.variantId,
       quantity: item.quantity,
       price: item.price,
       createdAt: item.createdAt,
       product: {
-        name: item['product.name'],
+        id: item.p_id,
+        name: item.p_name,
+        image: item.p_image,
       },
+      variant: item.v_id ? {
+        id: item.v_id,
+        name: item.v_name,
+        value: item.v_value,
+      } : null,
     })),
   }
 }
@@ -745,12 +909,7 @@ export async function calculateDiscount(promoCode: PromoCode, subtotal: number):
   return Math.round(discount * 100) / 100
 }
 
-export async function incrementPromoCodeUsage(promoCodeId: string): Promise<void> {
-  await pool.execute(
-    'UPDATE PromoCode SET usedCount = usedCount + 1 WHERE id = ?',
-    [promoCodeId]
-  )
-}
+// Функция incrementPromoCodeUsage удалена как неиспользуемая
 
 export async function findPromoCodes(activeOnly: boolean = true): Promise<PromoCode[]> {
   try {
@@ -888,14 +1047,7 @@ export async function removeFromWishlist(userId: string, productId: string): Pro
   )
 }
 
-export async function isInWishlist(userId: string, productId: string): Promise<boolean> {
-  const [rows] = await pool.execute(
-    'SELECT COUNT(*) as count FROM Wishlist WHERE userId = ? AND productId = ?',
-    [userId, productId]
-  ) as any[]
-  
-  return rows[0]?.count > 0
-}
+// Функция isInWishlist удалена как неиспользуемая (используется прямой запрос через API)
 
 // ==================== ОТЗЫВЫ ====================
 
@@ -1396,18 +1548,7 @@ export async function confirmReservations(orderId: string): Promise<void> {
   }
 }
 
-export async function releaseReservations(orderId: string): Promise<void> {
-  await pool.execute(
-    'UPDATE ProductReservation SET status = "RELEASED" WHERE orderId = ? AND status IN ("PENDING", "CONFIRMED")',
-    [orderId]
-  )
-}
-
-export async function cleanupExpiredReservations(): Promise<void> {
-  await pool.execute(
-    'UPDATE ProductReservation SET status = "EXPIRED" WHERE status = "PENDING" AND expiresAt < NOW()'
-  )
-}
+// Функции releaseReservations и cleanupExpiredReservations удалены как неиспользуемые
 
 // ==================== УВЕДОМЛЕНИЯ ====================
 
@@ -1461,14 +1602,7 @@ export async function markAllNotificationsAsRead(userId: string): Promise<void> 
   )
 }
 
-export async function getUnreadNotificationCount(userId: string): Promise<number> {
-  const [rows] = await pool.execute(
-    'SELECT COUNT(*) as count FROM Notification WHERE userId = ? AND read = false',
-    [userId]
-  ) as any[]
-  
-  return rows[0]?.count || 0
-}
+// Функция getUnreadNotificationCount удалена как неиспользуемая
 
 // ==================== ВОЗВРАТЫ ====================
 

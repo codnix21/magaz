@@ -130,9 +130,19 @@ export default function ProductPage() {
     }
   }
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
+    
     if (!session) {
       router.push("/auth/signin")
+      return
+    }
+
+    if (!product?.id) {
+      alert("Ошибка: товар не найден")
       return
     }
 
@@ -142,7 +152,7 @@ export default function ProductPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          productId: product?.id,
+          productId: product.id,
           variantId: selectedVariant?.id || null,
           quantity,
         }),
@@ -152,7 +162,8 @@ export default function ProductPage() {
         await refreshCart()
         alert("Товар добавлен в корзину!")
       } else {
-        alert("Ошибка при добавлении товара в корзину")
+        const errorData = await response.json().catch(() => ({}))
+        alert(errorData.error || "Ошибка при добавлении товара в корзину")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
@@ -198,19 +209,19 @@ export default function ProductPage() {
   }, {} as Record<string, ProductVariant[]>) || {}
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <div className="container py-8">
-      <Link href="/products">
-        <Button variant="ghost" className="mb-4">
-          <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+    <div className="container py-8 sm:py-12 px-4 sm:px-6">
+      <Link href="/products" className="inline-block mb-6 animate-fade-in">
+        <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
+          <ArrowLeft className="h-5 w-5 mr-2" />
           Назад к товарам
         </Button>
       </Link>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
         {/* Галерея изображений */}
-        <div className="space-y-4">
-          <div className="relative w-full h-[500px] rounded-lg overflow-hidden shadow-xl border-2 border-blue-100">
+        <div className="space-y-4 animate-fade-in">
+          <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-200/60 card-glass">
             {hasDiscount && (
               <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
                 -{product.discountPercent}%
@@ -259,10 +270,10 @@ export default function ProductPage() {
           )}
         </div>
 
-        <Card className="shadow-xl border-2 border-blue-100">
-          <CardHeader>
+        <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
             <div className="flex items-start justify-between">
-              <CardTitle className="text-3xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              <CardTitle className="text-3xl sm:text-4xl font-black text-white">
                 {product.name}
               </CardTitle>
               {session && (
@@ -286,7 +297,7 @@ export default function ProductPage() {
                     {product.originalPrice.toLocaleString("ru-RU")} ₽
                   </p>
                 )}
-                <p className="text-4xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                <p className="text-5xl font-black gradient-text animate-gradient">
                   {finalPrice.toLocaleString("ru-RU")} ₽
                 </p>
               </div>
@@ -375,7 +386,7 @@ export default function ProductPage() {
                 <Button
                   onClick={handleAddToCart}
                   disabled={adding || !session}
-                  className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg hover:shadow-xl transition-all"
+                  className="w-full btn-gradient font-bold rounded-xl text-lg py-7"
                   size="lg"
                 >
                   <ShoppingCart className="h-4 w-4 mr-2" />

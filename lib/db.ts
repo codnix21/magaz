@@ -73,7 +73,7 @@ const pool = mysql.createPool({
   ...config,
   // Опции пула соединений
   waitForConnections: true,
-  connectionLimit: 10,
+  connectionLimit: 20, // Увеличено для лучшей производительности
   queueLimit: 0,
   enableKeepAlive: true,
   keepAliveInitialDelay: 0,

@@ -110,10 +110,10 @@ export default function WishlistPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
-        <div className="mb-6 sm:mb-8">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+      <div className="container py-8 sm:py-12 px-4 sm:px-6">
+        <div className="mb-8 sm:mb-12 animate-fade-in">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
             Избранное
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
@@ -122,14 +122,14 @@ export default function WishlistPage() {
         </div>
 
         {wishlist.length === 0 ? (
-          <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
+          <Card className="p-12 text-center card-glass border-blue-200/60 animate-fade-in">
             <Heart className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <h2 className="text-2xl font-semibold mb-2">Избранное пусто</h2>
+            <h2 className="text-2xl font-bold mb-2">Избранное пусто</h2>
             <p className="text-muted-foreground mb-6">
               Добавьте товары в избранное, чтобы быстро найти их позже
             </p>
             <Link href="/products">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+              <Button className="btn-gradient rounded-xl font-bold px-8 py-6">
                 Перейти к товарам
               </Button>
             </Link>
@@ -141,7 +141,7 @@ export default function WishlistPage() {
               const hasDiscount = item.product.discountPercent && item.product.discountPercent > 0
 
               return (
-                <Card key={item.id} className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-2">
+                <Card key={item.id} className="flex flex-col group card-modern hover:border-blue-300/80 overflow-hidden animate-fade-in">
                   <div className="relative w-full h-64 overflow-hidden">
                     <Link href={`/products/${item.product.id}`}>
                       <Image
@@ -197,9 +197,9 @@ export default function WishlistPage() {
                     </div>
                   </CardContent>
 
-                  <CardFooter className="flex gap-2 pt-0">
+                  <CardFooter className="flex gap-2 pt-0 pb-6 px-6">
                     <Button
-                      className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                      className="flex-1 btn-gradient rounded-xl font-semibold"
                       onClick={() => addToCart(item.product.id)}
                       disabled={item.product.stock === 0}
                     >
@@ -210,7 +210,7 @@ export default function WishlistPage() {
                       variant="outline"
                       size="icon"
                       onClick={() => removeFromWishlist(item.product.id)}
-                      className="hover:bg-red-50 hover:text-red-600 hover:border-red-300"
+                      className="hover:bg-red-50 hover:text-red-600 hover:border-red-300 rounded-xl"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>

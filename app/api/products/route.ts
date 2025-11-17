@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { findProducts, createProduct } from "@/lib/db-helpers"
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 60 // Кешируем на 60 секунд
+
 export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url)

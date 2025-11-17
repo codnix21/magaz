@@ -98,30 +98,30 @@ export default function ReturnsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
-        <div className="mb-6 sm:mb-8">
-          <Link href="/profile">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+      <div className="container py-8 sm:py-12 px-4 sm:px-6">
+        <div className="mb-8 sm:mb-12 animate-fade-in">
+          <Link href="/profile" className="inline-block mb-6">
+            <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Назад к профилю
             </Button>
           </Link>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
             Возвраты
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">История возвратов заказов</p>
         </div>
 
         {returns.length === 0 ? (
-          <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
+          <Card className="p-12 text-center card-glass border-blue-200/60 animate-fade-in">
             <RotateCcw className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-            <p className="text-xl font-semibold mb-2">Нет возвратов</p>
+            <p className="text-xl font-bold mb-2">Нет возвратов</p>
             <p className="text-muted-foreground mb-6">
               Здесь будут отображаться ваши запросы на возврат
             </p>
             <Link href="/orders">
-              <Button className="bg-gradient-to-r from-blue-600 to-indigo-600">
+              <Button className="btn-gradient rounded-xl font-bold px-8 py-6">
                 Перейти к заказам
               </Button>
             </Link>
@@ -131,13 +131,15 @@ export default function ReturnsPage() {
             {returns.map((return_) => (
               <Card
                 key={return_.id}
-                className="shadow-xl border-2 transition-all hover:shadow-2xl border-blue-100 hover:border-blue-300"
+                className="card-modern hover:border-blue-300/80 animate-fade-in"
               >
-                <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+                <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
                   <div className="flex items-start justify-between">
                     <div>
-                      <CardTitle className="flex items-center gap-2">
-                        <RotateCcw className="h-5 w-5 text-blue-600" />
+                      <CardTitle className="flex items-center gap-3 text-white font-black text-xl">
+                        <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl">
+                          <RotateCcw className="h-5 w-5 text-white" />
+                        </div>
                         Возврат #{return_.id.slice(-8)}
                       </CardTitle>
                       <p className="text-sm text-muted-foreground mt-1">
@@ -145,7 +147,7 @@ export default function ReturnsPage() {
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="text-2xl font-bold text-blue-600 mb-2">
+                      <p className="text-2xl font-black text-white mb-2">
                         {return_.refundAmount.toLocaleString("ru-RU")} ₽
                       </p>
                       <span className={`px-3 py-1 rounded-full text-xs font-semibold border-2 ${getStatusColor(return_.status)}`}>

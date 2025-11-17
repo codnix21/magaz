@@ -127,10 +127,10 @@ export default function CartPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <div className="container py-6 sm:py-8 px-4 sm:px-6">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+    <div className="container py-8 sm:py-12 px-4 sm:px-6">
+      <div className="mb-8 sm:mb-12 animate-fade-in">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
           Корзина
         </h1>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -155,7 +155,7 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-3 sm:space-y-4">
             {cartItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+              <Card key={item.id} className="card-modern hover:border-blue-300/80 animate-fade-in">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <Link href={`/products/${item.product.id}`} className="relative w-full sm:w-32 h-48 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden group">
@@ -246,9 +246,9 @@ export default function CartPage() {
             ))}
           </div>
 
-          <Card className="h-fit sticky top-24 shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
-            <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-t-lg shadow-lg">
-              <CardTitle className="text-white font-bold">Итого</CardTitle>
+          <Card className="h-fit sticky top-24 card-glass border-blue-300/60 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-2xl glow-shadow">
+              <CardTitle className="text-white font-black text-2xl">Итого</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="flex justify-between text-lg">
@@ -260,9 +260,9 @@ export default function CartPage() {
                 <span className="text-blue-600">{total.toLocaleString("ru-RU")} ₽</span>
               </div>
               <Link href="/checkout" className="block pt-2">
-                <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold" size="lg">
+                <Button className="w-full btn-gradient font-bold rounded-xl text-lg py-7" size="lg">
                   Оформить заказ
-                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>

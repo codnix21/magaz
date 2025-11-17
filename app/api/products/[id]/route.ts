@@ -8,12 +8,15 @@ import {
   findProductAttributes
 } from "@/lib/db-helpers"
 
+export const dynamic = 'force-dynamic'
+
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    const product = await findProductById(params.id)
+    const resolvedParams = await Promise.resolve(params)
+    const product = await findProductById(resolvedParams.id)
 
     if (!product) {
       return NextResponse.json(
@@ -24,9 +27,9 @@ export async function GET(
 
     // Получаем варианты, изображения и атрибуты
     const [variants, images, attributes] = await Promise.all([
-      findProductVariants(params.id),
-      findProductImages(params.id),
-      findProductAttributes(params.id)
+      findProductVariants(resolvedParams.id),
+      findProductImages(resolvedParams.id),
+      findProductAttributes(resolvedParams.id)
     ])
 
     return NextResponse.json({
@@ -46,13 +49,14 @@ export async function GET(
 
 export async function PUT(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
+    const resolvedParams = await Promise.resolve(params)
     const body = await request.json()
     const { name, description, price, image, category, stock } = body
 
-    const product = await updateProduct(params.id, {
+    const product = await updateProduct(resolvedParams.id, {
       name,
       description,
       price: parseFloat(price),
@@ -73,10 +77,11 @@ export async function PUT(
 
 export async function DELETE(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
-    await deleteProduct(params.id)
+    const resolvedParams = await Promise.resolve(params)
+    await deleteProduct(resolvedParams.id)
 
     return NextResponse.json({ message: "Product deleted" })
   } catch (error) {

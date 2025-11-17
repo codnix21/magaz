@@ -5,7 +5,7 @@ import { findOrderById, updateOrderStatus } from "@/lib/db-helpers"
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -17,8 +17,9 @@ export async function GET(
       )
     }
 
+    const resolvedParams = await Promise.resolve(params)
     const order = await findOrderById(
-      params.id,
+      resolvedParams.id,
       session.user.role !== "ADMIN" ? session.user.id : undefined
     )
 
@@ -45,7 +46,7 @@ export async function GET(
 
 export async function PATCH(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> | { id: string } }
 ) {
   try {
     const session = await getServerSession(authOptions)
@@ -57,10 +58,11 @@ export async function PATCH(
       )
     }
 
+    const resolvedParams = await Promise.resolve(params)
     const body = await request.json()
     const { status } = body
 
-    const order = await updateOrderStatus(params.id, status)
+    const order = await updateOrderStatus(resolvedParams.id, status)
 
     return NextResponse.json(order)
   } catch (error) {

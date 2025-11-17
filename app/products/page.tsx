@@ -23,30 +23,73 @@ interface Product {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([])
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+  const [allCategories, setAllCategories] = useState<string[]>([])
   const [search, setSearch] = useState("")
   const [category, setCategory] = useState("")
   const [loading, setLoading] = useState(true)
 
+  // Загружаем все категории один раз при монтировании
   useEffect(() => {
-    fetchProducts()
+    fetchAllCategories()
   }, [])
 
+  // Загружаем товары при изменении категории
   useEffect(() => {
-    filterProducts()
-  }, [search, category, products])
+    fetchProducts()
+  }, [category])
+
+  // Фильтруем товары по поиску
+  useEffect(() => {
+    if (!Array.isArray(products)) {
+      setFilteredProducts([])
+      return
+    }
+    
+    if (!search || search.trim() === "") {
+      setFilteredProducts(products)
+      return
+    }
+
+    const filtered = products.filter(
+      (product) =>
+        product.name.toLowerCase().includes(search.toLowerCase()) ||
+        product.description.toLowerCase().includes(search.toLowerCase())
+    )
+
+    setFilteredProducts(filtered)
+  }, [search, products])
+
+  const fetchAllCategories = async () => {
+    try {
+      const response = await fetch("/api/products", {
+        cache: 'no-store'
+      })
+      const data = await response.json()
+      
+      if (Array.isArray(data)) {
+        const uniqueCategories = Array.from(new Set(data.map((p: Product) => p.category)))
+        setAllCategories(uniqueCategories)
+      }
+    } catch (error) {
+      console.error("Error fetching categories:", error)
+    }
+  }
 
   const fetchProducts = async () => {
     try {
+      setLoading(true)
       const url = category
-        ? `/api/products?category=${category}`
+        ? `/api/products?category=${encodeURIComponent(category)}`
         : "/api/products"
-      const response = await fetch(url)
+      const response = await fetch(url, {
+        cache: 'no-store'
+      })
       const data = await response.json()
       
       // Убеждаемся, что data - это массив
       if (Array.isArray(data)) {
         setProducts(data)
-        setFilteredProducts(data)
+        // filteredProducts обновится автоматически через useEffect
       } else {
         console.error("Expected array but got:", data)
         setProducts([])
@@ -61,29 +104,6 @@ export default function ProductsPage() {
     }
   }
 
-  const filterProducts = () => {
-    if (!Array.isArray(products)) {
-      setFilteredProducts([])
-      return
-    }
-    
-    let filtered = products
-
-    if (search) {
-      filtered = filtered.filter(
-        (product) =>
-          product.name.toLowerCase().includes(search.toLowerCase()) ||
-          product.description.toLowerCase().includes(search.toLowerCase())
-      )
-    }
-
-    setFilteredProducts(filtered)
-  }
-
-  const categories = Array.isArray(products)
-    ? Array.from(new Set(products.map((p) => p.category)))
-    : []
-
   if (loading) {
     return (
       <div className="container py-8">
@@ -93,43 +113,51 @@ export default function ProductsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-    <div className="container py-6 sm:py-8 px-4 sm:px-6">
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+    <div className="container py-8 sm:py-12 px-4 sm:px-6">
+      <div className="mb-8 sm:mb-12 animate-fade-in">
+        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
           Каталог товаров
         </h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Найдите то, что ищете</p>
+        <p className="text-base sm:text-lg text-muted-foreground font-medium">Найдите то, что ищете</p>
       </div>
 
-      <div className="mb-6 sm:mb-8 space-y-4">
-        <Card className="p-3 sm:p-4 border-2 border-blue-100 shadow-lg">
+      <div className="mb-8 sm:mb-10 space-y-5 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+        <Card className="p-4 sm:p-5 card-glass border-blue-200/60">
           <div className="flex flex-col md:flex-row gap-4">
             <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-500 h-4 w-4 sm:h-5 sm:w-5" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-600 h-5 w-5 sm:h-6 sm:w-6 z-10" />
               <Input
                 placeholder="Поиск товаров..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-9 sm:pl-10 border-2 focus:border-blue-500 text-sm sm:text-base"
+                className="pl-12 sm:pl-14 h-12 sm:h-14 border-2 border-blue-200/60 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 text-base sm:text-lg rounded-xl transition-all duration-300"
               />
             </div>
           </div>
         </Card>
-        <div className="flex gap-2 flex-wrap">
+        <div className="flex gap-3 flex-wrap">
           <Button
             variant={category === "" ? "default" : "outline"}
-            onClick={() => setCategory("")}
-            className={category === "" ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" : ""}
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setCategory("")
+            }}
+            className={category === "" ? "btn-gradient rounded-xl px-6 py-6 h-auto font-bold shadow-xl" : "rounded-xl px-6 py-6 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold"}
           >
             Все категории
           </Button>
-          {categories.map((cat) => (
+          {allCategories.map((cat) => (
             <Button
               key={cat}
               variant={category === cat ? "default" : "outline"}
-              onClick={() => setCategory(cat)}
-              className={category === cat ? "bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700" : ""}
+              onClick={(e) => {
+                e.preventDefault()
+                e.stopPropagation()
+                setCategory(cat)
+              }}
+              className={category === cat ? "btn-gradient rounded-xl px-6 py-6 h-auto font-bold shadow-xl" : "rounded-xl px-6 py-6 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold"}
             >
               {cat}
             </Button>
@@ -145,8 +173,13 @@ export default function ProductsPage() {
             Попробуйте изменить критерии поиска или категорию
           </p>
           <Button 
-            onClick={() => { setSearch(""); setCategory(""); }}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            onClick={(e) => {
+              e.preventDefault()
+              e.stopPropagation()
+              setSearch("")
+              setCategory("")
+            }}
+            className="btn-gradient rounded-xl font-semibold"
           >
             Сбросить фильтры
           </Button>
@@ -162,7 +195,7 @@ export default function ProductsPage() {
             return (
                 <Card 
                   key={product.id} 
-                  className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-2"
+                  className="flex flex-col group card-modern hover:border-blue-300/80 overflow-hidden animate-fade-in"
                   style={{ animationDelay: `${index * 50}ms` }}
                 >
                 <div className="relative w-full h-64 overflow-hidden">
@@ -220,10 +253,11 @@ export default function ProductsPage() {
                     </p>
                   </div>
                 </CardContent>
-                <CardFooter className="flex gap-2 pt-0 pb-4">
+                <CardFooter className="flex gap-2 pt-0 pb-6 px-6">
                   <Link href={`/products/${product.id}`} className="flex-1">
-                    <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold">
+                    <Button className="w-full btn-gradient font-bold rounded-xl text-base py-6">
                       Подробнее
+                      <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">→</span>
                     </Button>
                   </Link>
                 </CardFooter>

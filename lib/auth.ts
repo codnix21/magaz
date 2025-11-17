@@ -1,7 +1,6 @@
 import type { NextAuthOptions } from "next-auth"
 import CredentialsProvider from "next-auth/providers/credentials"
 import GoogleProvider from "next-auth/providers/google"
-import FacebookProvider from "next-auth/providers/facebook"
 import type { JWT } from "next-auth/jwt"
 import type { User } from "next-auth"
 import { findUserByEmail, createUser, findUserById } from "./db-helpers"
@@ -62,20 +61,10 @@ export const authOptions: NextAuthOptions = {
           }),
         ]
       : []),
-    // Facebook OAuth (опционально, только если настроены credentials)
-    ...(process.env.FACEBOOK_CLIENT_ID && process.env.FACEBOOK_CLIENT_SECRET
-      ? [
-          FacebookProvider({
-            clientId: process.env.FACEBOOK_CLIENT_ID,
-            clientSecret: process.env.FACEBOOK_CLIENT_SECRET,
-            allowDangerousEmailAccountLinking: true,
-          }),
-        ]
-      : []),
   ],
   callbacks: {
     async signIn({ user, account, profile }) {
-      if (account?.provider === "google" || account?.provider === "facebook") {
+      if (account?.provider === "google") {
         try {
           // Проверяем, существует ли пользователь
           let dbUser = await findUserByEmail(user.email || "")

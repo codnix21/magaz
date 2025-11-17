@@ -173,16 +173,16 @@ export default function AddressesPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
-      <div className="container py-6 sm:py-8 px-4 sm:px-6">
-        <div className="mb-6 sm:mb-8">
-          <Link href="/profile">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="h-4 w-4 mr-2" />
+    <div className="min-h-screen bg-gradient-modern bg-mesh">
+      <div className="container py-8 sm:py-12 px-4 sm:px-6">
+        <div className="mb-8 sm:mb-12 animate-fade-in">
+          <Link href="/profile" className="inline-block mb-6">
+            <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
+              <ArrowLeft className="h-5 w-5 mr-2" />
               Назад к профилю
             </Button>
           </Link>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-3 gradient-text animate-gradient">
             Адресная книга
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">Управление адресами доставки</p>
@@ -201,17 +201,17 @@ export default function AddressesPage() {
             </div>
 
             {addresses.length === 0 ? (
-              <Card className="p-12 text-center shadow-xl border-2 border-blue-100">
+              <Card className="p-12 text-center card-glass border-blue-200/60 animate-fade-in">
                 <MapPin className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <p className="text-xl font-semibold mb-2">Нет сохраненных адресов</p>
+                <p className="text-xl font-bold mb-2">Нет сохраненных адресов</p>
                 <p className="text-muted-foreground mb-6">
                   Добавьте адрес для быстрого оформления заказов
                 </p>
                 <Button
                   onClick={() => setShowForm(true)}
-                  className="bg-gradient-to-r from-blue-600 to-indigo-600"
+                  className="btn-gradient rounded-xl font-bold px-8 py-6"
                 >
-                  <Plus className="h-4 w-4 mr-2" />
+                  <Plus className="h-5 w-5 mr-2" />
                   Добавить адрес
                 </Button>
               </Card>
@@ -220,18 +220,20 @@ export default function AddressesPage() {
                 {addresses.map((address) => (
                   <Card
                     key={address.id}
-                    className={`shadow-xl border-2 transition-all hover:shadow-2xl ${
+                    className={`card-modern transition-all ${
                       address.isDefault
-                        ? "border-blue-500 bg-blue-50/50"
-                        : "border-blue-100 hover:border-blue-300"
-                    }`}
+                        ? "border-blue-400 bg-blue-50/50"
+                        : "hover:border-blue-300/80"
+                    } animate-fade-in`}
                   >
-                    <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+                    <CardHeader className={`${address.isDefault ? 'gradient-bg-primary' : 'bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50'} text-white rounded-t-2xl shadow-xl border-b-2 ${address.isDefault ? 'border-white/20' : 'border-blue-200/50'}`}>
                       <div className="flex items-start justify-between">
-                        <CardTitle className="flex items-center gap-2">
-                          <MapPin className="h-5 w-5 text-blue-600" />
+                        <CardTitle className={`flex items-center gap-2 ${address.isDefault ? 'text-white font-black' : ''}`}>
+                          <div className={`p-2 rounded-xl ${address.isDefault ? 'bg-white/20 backdrop-blur-md' : 'bg-blue-600/10'}`}>
+                            <MapPin className={`h-5 w-5 ${address.isDefault ? 'text-white' : 'text-blue-600'}`} />
+                          </div>
                           {address.isDefault && (
-                            <span className="text-xs bg-blue-600 text-white px-2 py-1 rounded">
+                            <span className="text-xs bg-white/20 backdrop-blur-md text-white px-3 py-1.5 rounded-xl font-bold border border-white/30">
                               По умолчанию
                             </span>
                           )}
@@ -287,9 +289,9 @@ export default function AddressesPage() {
             )}
           </>
         ) : (
-          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md max-w-2xl mx-auto">
-            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
-              <CardTitle>
+          <Card className="card-glass border-blue-200/60 max-w-2xl mx-auto animate-fade-in">
+            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
+              <CardTitle className="text-white font-black text-xl">
                 {editingId ? "Редактировать адрес" : "Новый адрес"}
               </CardTitle>
             </CardHeader>
@@ -401,7 +403,7 @@ export default function AddressesPage() {
                 <div className="flex gap-4 pt-4">
                   <Button
                     type="submit"
-                    className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600"
+                    className="flex-1 btn-gradient rounded-xl font-semibold"
                   >
                     Сохранить
                   </Button>
@@ -424,6 +426,7 @@ export default function AddressesPage() {
                         isDefault: false,
                       })
                     }}
+                    className="rounded-xl"
                   >
                     Отмена
                   </Button>
