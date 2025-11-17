@@ -35,9 +35,9 @@ export async function POST(request: Request) {
     }
 
     const body = await request.json()
-    const { productId, quantity } = body
+    const { productId, variantId, quantity } = body
 
-    const cartItem = await addToCart(session.user.id, productId, quantity || 1)
+    const cartItem = await addToCart(session.user.id, productId, quantity || 1, variantId || null)
 
     return NextResponse.json(cartItem, { status: 201 })
   } catch (error) {

@@ -2,8 +2,9 @@ import Link from "next/link"
 
 export function Footer() {
   return (
-    <footer className="border-t bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white mt-auto">
-      <div className="container py-8 sm:py-12 px-4 sm:px-6">
+    <footer className="border-t border-gray-800 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white mt-auto relative overflow-hidden">
+      <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-10"></div>
+      <div className="container py-8 sm:py-12 px-4 sm:px-6 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
           <div>
             <h3 className="font-bold text-xl mb-4 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">

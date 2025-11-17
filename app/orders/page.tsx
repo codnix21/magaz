@@ -118,8 +118,8 @@ export default function OrdersPage() {
             const statusColor = statusColors[order.status] || "bg-gray-100 text-gray-800 border-gray-300"
             
             return (
-              <Card key={order.id} className="hover:shadow-xl transition-shadow border-2 border-blue-50 overflow-hidden">
-                <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
+              <Card key={order.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                <div className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
                   <CardHeader>
                     <div className="flex justify-between items-start flex-wrap gap-4">
                       <div>

@@ -160,11 +160,11 @@ export default function ProductsPage() {
               : product.price
 
             return (
-              <Card 
-                key={product.id} 
-                className="flex flex-col group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 overflow-hidden"
-                style={{ animationDelay: `${index * 50}ms` }}
-              >
+                <Card 
+                  key={product.id} 
+                  className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-2"
+                  style={{ animationDelay: `${index * 50}ms` }}
+                >
                 <div className="relative w-full h-64 overflow-hidden">
                   <Link href={`/products/${product.id}`}>
                     <Image
@@ -176,18 +176,18 @@ export default function ProductsPage() {
                       unoptimized={process.env.NODE_ENV === 'development'}
                     />
                   </Link>
-                  <div className="absolute top-3 right-3 flex flex-col gap-2">
+                  <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
                     {hasDiscount && (
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                      <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-xl shadow-red-500/50 animate-pulse">
                         -{product.discountPercent}%
                       </span>
                     )}
                     {product.stock > 0 ? (
-                      <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                      <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-green-500/30">
                         В наличии
                       </span>
                     ) : (
-                      <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                      <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-red-500/30">
                         Нет в наличии
                       </span>
                     )}
@@ -220,9 +220,9 @@ export default function ProductsPage() {
                     </p>
                   </div>
                 </CardContent>
-                <CardFooter className="flex gap-2 pt-0">
+                <CardFooter className="flex gap-2 pt-0 pb-4">
                   <Link href={`/products/${product.id}`} className="flex-1">
-                    <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                    <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold">
                       Подробнее
                     </Button>
                   </Link>

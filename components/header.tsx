@@ -13,13 +13,13 @@ export function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-md supports-[backdrop-filter]:bg-white/80 shadow-sm">
-      <div className="container flex h-16 items-center justify-between">
+    <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur-xl supports-[backdrop-filter]:bg-white/80 shadow-md border-b-blue-100/50">
+      <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center space-x-2 group">
-          <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2 rounded-lg group-hover:scale-110 transition-transform">
+          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-2.5 rounded-xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-300 shadow-lg shadow-blue-500/30">
             <ShoppingCart className="h-5 w-5 text-white" />
           </div>
-          <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <span className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
             Магазин
           </span>
         </Link>
@@ -27,33 +27,33 @@ export function Header() {
         <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
           <Link
             href="/"
-            className="text-sm font-semibold transition-colors hover:text-blue-600 relative group"
+            className="text-sm font-semibold transition-all duration-200 hover:text-blue-600 relative group px-2 py-1 rounded-md hover:bg-blue-50"
           >
             Главная
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           <Link
             href="/products"
-            className="text-sm font-semibold transition-colors hover:text-blue-600 relative group"
+            className="text-sm font-semibold transition-all duration-200 hover:text-blue-600 relative group px-2 py-1 rounded-md hover:bg-blue-50"
           >
             Товары
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           <Link
             href="/products?promo=true"
-            className="text-sm font-semibold transition-colors hover:text-blue-600 relative group flex items-center gap-1"
+            className="text-sm font-semibold transition-all duration-200 hover:text-blue-600 relative group flex items-center gap-1 px-2 py-1 rounded-md hover:bg-blue-50"
           >
-            <Gift className="h-4 w-4" />
+            <Gift className="h-4 w-4 group-hover:scale-110 transition-transform" />
             Акции
-            <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           {session?.user?.role === "ADMIN" && (
             <Link
               href="/admin"
-              className="text-sm font-semibold transition-colors hover:text-blue-600 relative group"
+              className="text-sm font-semibold transition-all duration-200 hover:text-red-600 relative group px-2 py-1 rounded-md hover:bg-red-50"
             >
               Админ
-              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-blue-600 transition-all group-hover:w-full"></span>
+              <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-red-600 to-orange-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
             </Link>
           )}
         </nav>
@@ -70,7 +70,7 @@ export function Header() {
             <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600">
               <ShoppingCart className="h-5 w-5" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 text-xs font-bold text-white flex items-center justify-center shadow-lg">
+                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-xs font-bold text-white flex items-center justify-center shadow-lg shadow-blue-500/50 animate-pulse">
                   {cartItemsCount > 9 ? '9+' : cartItemsCount}
                 </span>
               )}

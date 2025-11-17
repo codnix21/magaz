@@ -14,11 +14,20 @@ import { useCart } from "@/hooks/use-cart"
 interface CartItem {
   id: string
   quantity: number
+  variantId?: string | null
   product: {
     id: string
     name: string
     price: number
     image: string
+    stock: number
+    discountPercent?: number
+  }
+  variant?: {
+    id: string
+    name: string
+    value: string
+    price?: number | null
     stock: number
   }
 }
@@ -96,10 +105,14 @@ export default function CartPage() {
     }
   }
 
-  const total = cartItems.reduce(
-    (sum, item) => sum + item.product.price * item.quantity,
-    0
-  )
+  const total = cartItems.reduce((sum, item) => {
+    const itemPrice = item.variant?.price || item.product.price
+    const discount = item.product.discountPercent || 0
+    const finalPrice = discount > 0 
+      ? Math.round(itemPrice * (1 - discount / 100))
+      : itemPrice
+    return sum + finalPrice * item.quantity
+  }, 0)
 
   if (!session) {
     return null
@@ -142,7 +155,7 @@ export default function CartPage() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
           <div className="lg:col-span-2 space-y-3 sm:space-y-4">
             {cartItems.map((item) => (
-              <Card key={item.id} className="hover:shadow-lg transition-shadow border-2 border-blue-50">
+              <Card key={item.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:-translate-y-1">
                 <CardContent className="p-4 sm:p-6">
                   <div className="flex flex-col sm:flex-row gap-4 sm:gap-6">
                     <Link href={`/products/${item.product.id}`} className="relative w-full sm:w-32 h-48 sm:h-32 flex-shrink-0 rounded-lg overflow-hidden group">
@@ -160,9 +173,28 @@ export default function CartPage() {
                           {item.product.name}
                         </h3>
                       </Link>
-                      <p className="text-2xl font-bold text-blue-600 mb-4">
-                        {item.product.price.toLocaleString("ru-RU")} ₽
-                      </p>
+                      {item.variant && (
+                        <p className="text-sm text-muted-foreground mb-1">
+                          {item.variant.name}: {item.variant.value}
+                        </p>
+                      )}
+                      <div className="flex items-baseline gap-2 mb-4">
+                        {item.product.discountPercent && item.product.discountPercent > 0 && (
+                          <p className="text-lg text-muted-foreground line-through">
+                            {(item.variant?.price || item.product.price).toLocaleString("ru-RU")} ₽
+                          </p>
+                        )}
+                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                          {(() => {
+                            const itemPrice = item.variant?.price || item.product.price
+                            const discount = item.product.discountPercent || 0
+                            const finalPrice = discount > 0 
+                              ? Math.round(itemPrice * (1 - discount / 100))
+                              : itemPrice
+                            return finalPrice.toLocaleString("ru-RU")
+                          })()} ₽
+                        </p>
+                      </div>
                       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
                         <div className="flex items-center gap-3 border-2 rounded-lg w-full sm:w-auto">
                           <Button
@@ -181,14 +213,21 @@ export default function CartPage() {
                             variant="ghost"
                             size="icon"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
-                            disabled={updating === item.id || item.quantity >= item.product.stock}
+                            disabled={updating === item.id || item.quantity >= (item.variant?.stock || item.product.stock)}
                             className="h-10 w-10 hover:bg-blue-50"
                           >
                             +
                           </Button>
                         </div>
                         <div className="text-base sm:text-lg font-semibold text-muted-foreground">
-                          Итого: {(item.product.price * item.quantity).toLocaleString("ru-RU")} ₽
+                          Итого: {(() => {
+                            const itemPrice = item.variant?.price || item.product.price
+                            const discount = item.product.discountPercent || 0
+                            const finalPrice = discount > 0 
+                              ? Math.round(itemPrice * (1 - discount / 100))
+                              : itemPrice
+                            return (finalPrice * item.quantity).toLocaleString("ru-RU")
+                          })()} ₽
                         </div>
                         <Button
                           variant="ghost"
@@ -207,9 +246,9 @@ export default function CartPage() {
             ))}
           </div>
 
-          <Card className="h-fit sticky top-24 shadow-xl border-2 border-blue-100">
-            <CardHeader className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-t-lg">
-              <CardTitle className="text-white">Итого</CardTitle>
+          <Card className="h-fit sticky top-24 shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
+            <CardHeader className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-t-lg shadow-lg">
+              <CardTitle className="text-white font-bold">Итого</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 pt-6">
               <div className="flex justify-between text-lg">
@@ -221,9 +260,9 @@ export default function CartPage() {
                 <span className="text-blue-600">{total.toLocaleString("ru-RU")} ₽</span>
               </div>
               <Link href="/checkout" className="block pt-2">
-                <Button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg" size="lg">
+                <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold" size="lg">
                   Оформить заказ
-                  <ArrowRight className="h-4 w-4 ml-2" />
+                  <ArrowRight className="h-4 w-4 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>

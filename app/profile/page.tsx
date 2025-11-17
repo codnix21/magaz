@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { User, Package, ShoppingBag, Heart, Settings } from "lucide-react"
+import { User, Package, ShoppingBag, Heart, Settings, MapPin, Bell } from "lucide-react"
 
 export default function ProfilePage() {
   const { data: session } = useSession()
@@ -27,10 +27,10 @@ export default function ProfilePage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
-        <Card className="shadow-xl border-2 border-blue-100">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <div className="bg-blue-600 p-2 rounded-lg">
+        <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+            <CardTitle className="flex items-center gap-2 text-xl font-bold">
+              <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-2.5 rounded-xl shadow-lg">
                 <User className="h-5 w-5 text-white" />
               </div>
               Информация о профиле
@@ -56,9 +56,9 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        <Card className="shadow-xl border-2 border-blue-100">
-          <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
-            <CardTitle className="text-xl">Быстрые действия</CardTitle>
+        <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md hover:shadow-3xl transition-all duration-300">
+          <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+            <CardTitle className="text-xl font-bold">Быстрые действия</CardTitle>
           </CardHeader>
           <CardContent className="space-y-3 pt-6">
             <Link href="/orders" className="block">
@@ -77,6 +77,18 @@ export default function ProfilePage() {
               <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
                 <Heart className="h-5 w-5 mr-2" />
                 Избранное
+              </Button>
+            </Link>
+            <Link href="/profile/addresses" className="block">
+              <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
+                <MapPin className="h-5 w-5 mr-2" />
+                Адресная книга
+              </Button>
+            </Link>
+            <Link href="/profile/notifications" className="block">
+              <Button variant="outline" className="w-full justify-start hover:bg-blue-50 hover:border-blue-300 hover:text-blue-600 transition-colors h-12 text-lg">
+                <Bell className="h-5 w-5 mr-2" />
+                Уведомления
               </Button>
             </Link>
             {session.user?.role === "ADMIN" && (

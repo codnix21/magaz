@@ -28,31 +28,35 @@ export default async function HomePage() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white py-12 sm:py-16 md:py-20 mb-8 sm:mb-12 md:mb-16">
-        <div className="absolute inset-0 bg-black/10"></div>
+      <section className="relative overflow-hidden bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 text-white py-12 sm:py-16 md:py-24 mb-8 sm:mb-12 md:mb-16">
+        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-20"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-black/10"></div>
         <div className="container relative z-10">
-          <div className="max-w-3xl mx-auto text-center">
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold mb-4 sm:mb-6 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000">
-              Добро пожаловать в наш магазин!
+          <div className="max-w-4xl mx-auto text-center">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-extrabold mb-4 sm:mb-6 px-4 leading-tight">
+              <span className="block mb-2">Добро пожаловать в</span>
+              <span className="block bg-gradient-to-r from-white via-blue-100 to-indigo-100 bg-clip-text text-transparent drop-shadow-lg">
+                наш магазин!
+              </span>
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-6 sm:mb-8 text-blue-100 px-4 animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-300">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl mb-8 sm:mb-10 text-blue-50 px-4 max-w-2xl mx-auto leading-relaxed">
               Откройте для себя лучшие товары по выгодным ценам
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center animate-in fade-in slide-in-from-bottom-4 duration-1000 delay-500">
+            <div className="flex flex-col sm:flex-row gap-4 justify-center px-4">
               <Link href="/products">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 text-lg px-8 py-6">
+                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 hover:scale-105 text-lg px-8 py-6 shadow-xl shadow-blue-500/30 transition-all duration-300 font-semibold">
                   Посмотреть все товары
                 </Button>
               </Link>
               <Link href="/products">
-                <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 text-lg px-8 py-6">
+                <Button size="lg" variant="outline" className="border-2 border-white/80 text-white hover:bg-white/20 hover:border-white text-lg px-8 py-6 backdrop-blur-sm transition-all duration-300 font-semibold">
                   Новинки
                 </Button>
               </Link>
             </div>
           </div>
         </div>
-        <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-slate-50 to-transparent"></div>
+        <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-slate-50 via-slate-50/80 to-transparent"></div>
       </section>
 
       <div className="container py-6 sm:py-8 px-4 sm:px-6">
@@ -92,7 +96,7 @@ export default async function HomePage() {
               return (
                 <Card 
                   key={product.id} 
-                  className="flex flex-col group hover:shadow-xl transition-all duration-300 border-2 hover:border-blue-300 overflow-hidden"
+                  className="flex flex-col group hover:shadow-2xl transition-all duration-500 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-2"
                   style={{ animationDelay: `${index * 100}ms` }}
                 >
                   <div className="relative w-full h-64 overflow-hidden">
@@ -108,18 +112,18 @@ export default async function HomePage() {
                         blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
                       />
                     </Link>
-                    <div className="absolute top-3 right-3 flex flex-col gap-2">
+                    <div className="absolute top-3 right-3 flex flex-col gap-2 z-10">
                       {hasDiscount && (
-                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                        <span className="bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-xl shadow-red-500/50 animate-pulse">
                           -{product.discountPercent}%
                         </span>
                       )}
                       {product.stock > 0 ? (
-                        <span className="bg-green-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                        <span className="bg-gradient-to-r from-green-500 to-emerald-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-green-500/30">
                           В наличии
                         </span>
                       ) : (
-                        <span className="bg-red-500 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-lg">
+                        <span className="bg-gradient-to-r from-red-500 to-rose-500 text-white px-3 py-1.5 rounded-full text-xs font-bold shadow-lg shadow-red-500/30">
                           Нет в наличии
                         </span>
                       )}
@@ -152,9 +156,9 @@ export default async function HomePage() {
                       </p>
                     </div>
                   </CardContent>
-                  <CardFooter className="flex gap-2 pt-0">
+                  <CardFooter className="flex gap-2 pt-0 pb-4">
                     <Link href={`/products/${product.id}`} className="flex-1">
-                      <Button className="w-full bg-blue-600 hover:bg-blue-700 text-white">
+                      <Button className="w-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-lg shadow-blue-500/30 hover:shadow-xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold">
                         Подробнее
                       </Button>
                     </Link>

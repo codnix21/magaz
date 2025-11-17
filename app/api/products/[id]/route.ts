@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server"
-import { findProductById, updateProduct, deleteProduct } from "@/lib/db-helpers"
+import { 
+  findProductById, 
+  updateProduct, 
+  deleteProduct,
+  findProductVariants,
+  findProductImages,
+  findProductAttributes
+} from "@/lib/db-helpers"
 
 export async function GET(
   request: Request,
@@ -15,7 +22,19 @@ export async function GET(
       )
     }
 
-    return NextResponse.json(product)
+    // Получаем варианты, изображения и атрибуты
+    const [variants, images, attributes] = await Promise.all([
+      findProductVariants(params.id),
+      findProductImages(params.id),
+      findProductAttributes(params.id)
+    ])
+
+    return NextResponse.json({
+      ...product,
+      variants,
+      images,
+      attributes
+    })
   } catch (error) {
     console.error("Error fetching product:", error)
     return NextResponse.json(

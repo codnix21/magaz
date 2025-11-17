@@ -8,17 +8,47 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { CheckCircle2, Gift, X } from "lucide-react"
+import { CheckCircle2, Gift, X, Plus, MapPin, Truck } from "lucide-react"
 
 interface CartItem {
   id: string
   quantity: number
+  variantId?: string | null
   product: {
     id: string
     name: string
     price: number
     image: string
+    discountPercent?: number
   }
+  variant?: {
+    id: string
+    name: string
+    value: string
+    price?: number | null
+  }
+}
+
+interface Address {
+  id: string
+  firstName: string
+  lastName: string
+  phone?: string | null
+  country: string
+  region?: string | null
+  city: string
+  postalCode?: string | null
+  street: string
+  isDefault: boolean
+}
+
+interface ShippingMethod {
+  id: string
+  name: string
+  description?: string | null
+  price: number
+  freeShippingThreshold?: number | null
+  estimatedDays?: number | null
 }
 
 export default function CheckoutPage() {
@@ -33,9 +63,26 @@ export default function CheckoutPage() {
   const [promoLoading, setPromoLoading] = useState(false)
   const [subtotal, setSubtotal] = useState(0)
   const [discountAmount, setDiscountAmount] = useState(0)
+  const [shippingCost, setShippingCost] = useState(0)
   const [total, setTotal] = useState(0)
   const [paymentMethod, setPaymentMethod] = useState<'online' | 'cash'>('online')
   const [processingPayment, setProcessingPayment] = useState(false)
+  const [addresses, setAddresses] = useState<Address[]>([])
+  const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null)
+  const [showNewAddress, setShowNewAddress] = useState(false)
+  const [newAddress, setNewAddress] = useState({
+    firstName: "",
+    lastName: "",
+    phone: "",
+    country: "Россия",
+    region: "",
+    city: "",
+    postalCode: "",
+    street: "",
+  })
+  const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null)
+  const [orderComment, setOrderComment] = useState("")
 
   useEffect(() => {
     if (!session) {
@@ -43,7 +90,19 @@ export default function CheckoutPage() {
       return
     }
     fetchCart()
+    fetchAddresses()
+    fetchShippingMethods()
   }, [session])
+
+  useEffect(() => {
+    if (selectedShippingMethodId && subtotal > 0) {
+      calculateShipping()
+    }
+  }, [selectedShippingMethodId, subtotal])
+
+  useEffect(() => {
+    updateTotals(cartItems, appliedPromo, shippingCost)
+  }, [shippingCost])
 
   const fetchCart = async () => {
     try {
@@ -54,7 +113,7 @@ export default function CheckoutPage() {
         if (data.items.length === 0) {
           router.push("/cart")
         } else {
-          updateTotals(data.items, appliedPromo)
+          updateTotals(data.items, appliedPromo, shippingCost)
         }
       }
     } catch (error) {
@@ -64,20 +123,115 @@ export default function CheckoutPage() {
     }
   }
 
-  const updateTotals = (items: CartItem[], promo: any = null) => {
-    const newSubtotal = items.reduce(
-      (sum, item) => sum + item.product.price * item.quantity,
-      0
-    )
+  const fetchAddresses = async () => {
+    try {
+      const response = await fetch("/api/addresses")
+      if (response.ok) {
+        const data = await response.json()
+        setAddresses(data)
+        const defaultAddr = data.find((a: Address) => a.isDefault)
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id)
+          setShippingAddress(formatAddress(defaultAddr))
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching addresses:", error)
+    }
+  }
+
+  const fetchShippingMethods = async () => {
+    try {
+      const response = await fetch("/api/shipping-methods")
+      if (response.ok) {
+        const data = await response.json()
+        setShippingMethods(data)
+        if (data.length > 0) {
+          setSelectedShippingMethodId(data[0].id)
+        }
+      }
+    } catch (error) {
+      console.error("Error fetching shipping methods:", error)
+    }
+  }
+
+  const calculateShipping = async () => {
+    if (!selectedShippingMethodId) return
+    try {
+      const response = await fetch(`/api/shipping-methods/${selectedShippingMethodId}/calculate?total=${subtotal}`)
+      if (response.ok) {
+        const data = await response.json()
+        setShippingCost(data.cost)
+      }
+    } catch (error) {
+      console.error("Error calculating shipping:", error)
+    }
+  }
+
+  const formatAddress = (addr: Address): string => {
+    return `${addr.country}${addr.region ? `, ${addr.region}` : ""}, ${addr.city}${addr.postalCode ? `, ${addr.postalCode}` : ""}, ${addr.street}`
+  }
+
+  const handleAddressSelect = (addressId: string) => {
+    setSelectedAddressId(addressId)
+    const addr = addresses.find(a => a.id === addressId)
+    if (addr) {
+      setShippingAddress(formatAddress(addr))
+      setShowNewAddress(false)
+    }
+  }
+
+  const handleSaveNewAddress = async () => {
+    try {
+      const response = await fetch("/api/addresses", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...newAddress,
+          type: "SHIPPING",
+          isDefault: addresses.length === 0,
+        }),
+      })
+      if (response.ok) {
+        const addr = await response.json()
+        await fetchAddresses()
+        setSelectedAddressId(addr.id)
+        setShippingAddress(formatAddress(addr))
+        setShowNewAddress(false)
+        setNewAddress({
+          firstName: "",
+          lastName: "",
+          phone: "",
+          country: "Россия",
+          region: "",
+          city: "",
+          postalCode: "",
+          street: "",
+        })
+      }
+    } catch (error) {
+      console.error("Error saving address:", error)
+      alert("Ошибка при сохранении адреса")
+    }
+  }
+
+  const updateTotals = (items: CartItem[], promo: any = null, shipping: number = 0) => {
+    const newSubtotal = items.reduce((sum, item) => {
+      const itemPrice = item.variant?.price || item.product.price
+      const discount = item.product.discountPercent || 0
+      const finalPrice = discount > 0 
+        ? Math.round(itemPrice * (1 - discount / 100))
+        : itemPrice
+      return sum + finalPrice * item.quantity
+    }, 0)
     setSubtotal(newSubtotal)
 
+    let finalDiscount = 0
     if (promo) {
-      setDiscountAmount(promo.discountAmount)
-      setTotal(promo.total)
-    } else {
-      setDiscountAmount(0)
-      setTotal(newSubtotal)
+      finalDiscount = promo.discountAmount
     }
+    setDiscountAmount(finalDiscount)
+    setTotal(newSubtotal - finalDiscount + shipping)
   }
 
   const handleApplyPromoCode = async () => {
@@ -97,8 +251,7 @@ export default function CheckoutPage() {
       if (response.ok) {
         const data = await response.json()
         setAppliedPromo(data.promoCode)
-        setDiscountAmount(data.discountAmount)
-        setTotal(data.total)
+        updateTotals(cartItems, data.promoCode, shippingCost)
       } else {
         const error = await response.json()
         alert(error.error || "Неверный промокод")
@@ -114,13 +267,17 @@ export default function CheckoutPage() {
   const handleRemovePromoCode = () => {
     setAppliedPromo(null)
     setPromoCode("")
-    updateTotals(cartItems, null)
+    updateTotals(cartItems, null, shippingCost)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!shippingAddress.trim()) {
       alert("Пожалуйста, укажите адрес доставки")
+      return
+    }
+    if (!selectedShippingMethodId) {
+      alert("Пожалуйста, выберите способ доставки")
       return
     }
 
@@ -131,12 +288,18 @@ export default function CheckoutPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           shippingAddress,
+          addressId: selectedAddressId,
+          shippingMethodId: selectedShippingMethodId,
+          shippingCost,
+          comment: orderComment.trim() || null,
           cartItems: cartItems.map((item) => ({
             productId: item.product.id,
+            variantId: item.variantId || null,
             quantity: item.quantity,
             product: item.product,
           })),
           promoCode: appliedPromo ? appliedPromo.code : null,
+          paymentMethod,
         }),
       })
 
@@ -209,20 +372,279 @@ export default function CheckoutPage() {
 
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
-          <Card className="shadow-xl border-2 border-blue-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
-              <CardTitle className="text-xl">Адрес доставки</CardTitle>
+          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
+            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+              <CardTitle className="text-xl font-bold flex items-center gap-2">
+                <MapPin className="h-5 w-5" />
+                Адрес доставки
+              </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="address">Адрес доставки</Label>
+              {/* Выбор существующего адреса */}
+              {addresses.length > 0 && !showNewAddress && (
+                <div className="space-y-2">
+                  <Label>Выберите адрес</Label>
+                  <div className="space-y-2">
+                    {addresses.map((addr) => (
+                      <button
+                        key={addr.id}
+                        type="button"
+                        onClick={() => handleAddressSelect(addr.id)}
+                        className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                          selectedAddressId === addr.id
+                            ? "border-blue-600 bg-blue-50 shadow-md"
+                            : "border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold">
+                              {addr.firstName} {addr.lastName}
+                            </p>
+                            <p className="text-sm text-muted-foreground">
+                              {formatAddress(addr)}
+                            </p>
+                            {addr.phone && (
+                              <p className="text-sm text-muted-foreground">
+                                {addr.phone}
+                              </p>
+                            )}
+                          </div>
+                          {addr.isDefault && (
+                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">
+                              По умолчанию
+                            </span>
+                          )}
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowNewAddress(true)}
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить новый адрес
+                  </Button>
+                </div>
+              )}
+
+              {/* Форма нового адреса */}
+              {showNewAddress && (
+                <div className="space-y-3 p-4 border-2 border-blue-200 rounded-lg bg-blue-50/50">
+                  <div className="flex items-center justify-between mb-2">
+                    <Label className="text-lg font-semibold">Новый адрес</Label>
+                    {addresses.length > 0 && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setShowNewAddress(false)}
+                      >
+                        Отмена
+                      </Button>
+                    )}
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="firstName">Имя *</Label>
+                      <Input
+                        id="firstName"
+                        value={newAddress.firstName}
+                        onChange={(e) =>
+                          setNewAddress({ ...newAddress, firstName: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Фамилия *</Label>
+                      <Input
+                        id="lastName"
+                        value={newAddress.lastName}
+                        onChange={(e) =>
+                          setNewAddress({ ...newAddress, lastName: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="phone">Телефон</Label>
+                    <Input
+                      id="phone"
+                      value={newAddress.phone}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, phone: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="country">Страна *</Label>
+                    <Input
+                      id="country"
+                      value={newAddress.country}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, country: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="region">Регион/Область</Label>
+                    <Input
+                      id="region"
+                      value={newAddress.region}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, region: e.target.value })
+                      }
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label htmlFor="city">Город *</Label>
+                      <Input
+                        id="city"
+                        value={newAddress.city}
+                        onChange={(e) =>
+                          setNewAddress({ ...newAddress, city: e.target.value })
+                        }
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="postalCode">Индекс</Label>
+                      <Input
+                        id="postalCode"
+                        value={newAddress.postalCode}
+                        onChange={(e) =>
+                          setNewAddress({ ...newAddress, postalCode: e.target.value })
+                        }
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="street">Улица, дом, квартира *</Label>
+                    <Input
+                      id="street"
+                      value={newAddress.street}
+                      onChange={(e) =>
+                        setNewAddress({ ...newAddress, street: e.target.value })
+                      }
+                      required
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    onClick={handleSaveNewAddress}
+                    disabled={
+                      !newAddress.firstName ||
+                      !newAddress.lastName ||
+                      !newAddress.country ||
+                      !newAddress.city ||
+                      !newAddress.street
+                    }
+                    className="w-full bg-gradient-to-r from-blue-600 to-indigo-600"
+                  >
+                    Сохранить адрес
+                  </Button>
+                </div>
+              )}
+
+              {/* Если нет адресов, показываем форму сразу */}
+              {addresses.length === 0 && !showNewAddress && (
+                <div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setShowNewAddress(true)}
+                    className="w-full mb-4"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Добавить адрес доставки
+                  </Button>
+                </div>
+              )}
+
+              {/* Резервный вариант - текстовое поле */}
+              {!showNewAddress && (
+                <div className="space-y-2">
+                  <Label htmlFor="address">Или укажите адрес вручную</Label>
+                  <Textarea
+                    id="address"
+                    placeholder="Укажите полный адрес доставки"
+                    value={shippingAddress}
+                    onChange={(e) => setShippingAddress(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+              )}
+
+              {/* Способ доставки */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label className="flex items-center gap-2">
+                  <Truck className="h-4 w-4" />
+                  Способ доставки *
+                </Label>
+                {shippingMethods.length > 0 ? (
+                  <div className="space-y-2">
+                    {shippingMethods.map((method) => (
+                      <button
+                        key={method.id}
+                        type="button"
+                        onClick={() => setSelectedShippingMethodId(method.id)}
+                        className={`w-full text-left p-3 rounded-lg border-2 transition-all ${
+                          selectedShippingMethodId === method.id
+                            ? "border-blue-600 bg-blue-50 shadow-md"
+                            : "border-gray-200 hover:border-blue-300"
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div>
+                            <p className="font-semibold">{method.name}</p>
+                            {method.description && (
+                              <p className="text-sm text-muted-foreground">
+                                {method.description}
+                              </p>
+                            )}
+                            {method.estimatedDays && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Примерно {method.estimatedDays} {method.estimatedDays === 1 ? "день" : method.estimatedDays < 5 ? "дня" : "дней"}
+                              </p>
+                            )}
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-blue-600">
+                              {shippingCost === 0 && subtotal >= (method.freeShippingThreshold || Infinity)
+                                ? "Бесплатно"
+                                : `${method.price.toLocaleString("ru-RU")} ₽`}
+                            </p>
+                            {method.freeShippingThreshold && subtotal < method.freeShippingThreshold && (
+                              <p className="text-xs text-muted-foreground">
+                                Бесплатно от {method.freeShippingThreshold.toLocaleString("ru-RU")} ₽
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">Загрузка способов доставки...</p>
+                )}
+              </div>
+
+              {/* Комментарий к заказу */}
+              <div className="space-y-2 pt-4 border-t">
+                <Label htmlFor="comment">Комментарий к заказу</Label>
                 <Textarea
-                  id="address"
-                  placeholder="Укажите полный адрес доставки"
-                  value={shippingAddress}
-                  onChange={(e) => setShippingAddress(e.target.value)}
-                  required
-                  rows={4}
+                  id="comment"
+                  placeholder="Дополнительные пожелания или инструкции для доставки"
+                  value={orderComment}
+                  onChange={(e) => setOrderComment(e.target.value)}
+                  rows={3}
                 />
               </div>
 
@@ -315,9 +737,9 @@ export default function CheckoutPage() {
             </CardContent>
           </Card>
 
-          <Card className="shadow-xl border-2 border-blue-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
-              <CardTitle className="text-xl">Ваш заказ</CardTitle>
+          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
+            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+              <CardTitle className="text-xl font-bold">Ваш заказ</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">

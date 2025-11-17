@@ -30,9 +30,11 @@ export interface CartItem {
   userId: string
   productId: string
   quantity: number
+  variantId?: string | null
   createdAt: Date
   updatedAt: Date
   product?: Product
+  variant?: ProductVariant
 }
 
 export interface Order {
@@ -54,6 +56,138 @@ export interface OrderItem {
   productId: string
   quantity: number
   price: number
+  variantId?: string | null
+  variantName?: string | null
+  createdAt: Date
+}
+
+// Новые интерфейсы для расширенного функционала
+export interface ProductVariant {
+  id: string
+  productId: string
+  name: string
+  value: string
+  sku?: string | null
+  price?: number | null
+  stock: number
+  image?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ProductImage {
+  id: string
+  productId: string
+  url: string
+  alt?: string | null
+  order: number
+  isPrimary: boolean
+  createdAt: Date
+}
+
+export interface ProductAttribute {
+  id: string
+  productId: string
+  name: string
+  value: string
+  order: number
+  createdAt: Date
+}
+
+export interface Address {
+  id: string
+  userId: string
+  type: 'SHIPPING' | 'BILLING' | 'BOTH'
+  firstName: string
+  lastName: string
+  phone?: string | null
+  country: string
+  region?: string | null
+  city: string
+  postalCode?: string | null
+  street: string
+  isDefault: boolean
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ShippingMethod {
+  id: string
+  name: string
+  description?: string | null
+  price: number
+  freeShippingThreshold?: number | null
+  estimatedDays?: number | null
+  isActive: boolean
+  order: number
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface ProductReservation {
+  id: string
+  orderId?: string | null
+  productId: string
+  variantId?: string | null
+  quantity: number
+  status: 'PENDING' | 'CONFIRMED' | 'RELEASED' | 'EXPIRED'
+  expiresAt: Date
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface OrderReturn {
+  id: string
+  orderId: string
+  userId: string
+  reason: string
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED'
+  refundAmount: number
+  refundStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
+  adminComment?: string | null
+  createdAt: Date
+  updatedAt: Date
+}
+
+export interface Ticket {
+  id: string
+  userId: string
+  orderId?: string | null
+  subject: string
+  status: 'OPEN' | 'IN_PROGRESS' | 'WAITING' | 'RESOLVED' | 'CLOSED'
+  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT'
+  assignedTo?: string | null
+  createdAt: Date
+  updatedAt: Date
+  closedAt?: Date | null
+}
+
+export interface TicketMessage {
+  id: string
+  ticketId: string
+  userId: string
+  message: string
+  isInternal: boolean
+  attachments?: any
+  createdAt: Date
+}
+
+export interface Notification {
+  id: string
+  userId: string
+  type: 'ORDER' | 'SHIPMENT' | 'PAYMENT' | 'RETURN' | 'REVIEW' | 'SYSTEM'
+  title: string
+  message: string
+  link?: string | null
+  read: boolean
+  createdAt: Date
+}
+
+export interface Tag {
+  id: string
+  name: string
+  slug: string
+  description?: string | null
   createdAt: Date
 }
 
@@ -207,11 +341,16 @@ export async function findCartItems(userId: string): Promise<CartItem[]> {
   const [rows] = await pool.execute(
     `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
             p.image as p_image, p.category as p_category, p.stock as p_stock,
-            p.description as p_description, p.createdAt as p_createdAt, 
-            p.updatedAt as p_updatedAt
+            p.description as p_description, p.discountPercent, p.originalPrice,
+            p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
+            v.id as variant_id, v.name as variant_name, v.value as variant_value, 
+            v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
+            v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
      FROM CartItem ci
      JOIN Product p ON ci.productId = p.id
-     WHERE ci.userId = ?`,
+     LEFT JOIN ProductVariant v ON ci.variantId = v.id
+     WHERE ci.userId = ?
+     ORDER BY ci.createdAt DESC`,
     [userId]
   ) as any[]
   
@@ -221,6 +360,7 @@ export async function findCartItems(userId: string): Promise<CartItem[]> {
     userId: row.userId,
     productId: row.productId,
     quantity: row.quantity,
+    variantId: row.variantId,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     product: {
@@ -231,17 +371,30 @@ export async function findCartItems(userId: string): Promise<CartItem[]> {
       category: row.p_category,
       stock: row.p_stock,
       description: row.p_description,
+      discountPercent: row.discountPercent || 0,
+      originalPrice: row.originalPrice,
       createdAt: row.p_createdAt,
       updatedAt: row.p_updatedAt,
-    }
+    },
+    variant: row.variant_id ? {
+      id: row.variant_id,
+      productId: row.productId,
+      name: row.variant_name,
+      value: row.variant_value,
+      price: row.variant_price,
+      stock: row.variant_stock,
+      image: row.variant_image,
+      createdAt: row.variant_createdAt,
+      updatedAt: row.variant_updatedAt,
+    } : undefined,
   }))
 }
 
-export async function addToCart(userId: string, productId: string, quantity: number = 1): Promise<CartItem> {
-  // Проверяем, есть ли уже этот товар в корзине
+export async function addToCart(userId: string, productId: string, quantity: number = 1, variantId: string | null = null): Promise<CartItem> {
+  // Проверяем, есть ли уже этот товар с таким же вариантом в корзине
   const [existing] = await pool.execute(
-    'SELECT * FROM CartItem WHERE userId = ? AND productId = ?',
-    [userId, productId]
+    'SELECT * FROM CartItem WHERE userId = ? AND productId = ? AND (variantId = ? OR (variantId IS NULL AND ? IS NULL))',
+    [userId, productId, variantId, variantId]
   ) as any[]
   
   if (existing[0]) {
@@ -251,13 +404,13 @@ export async function addToCart(userId: string, productId: string, quantity: num
       [quantity, existing[0].id]
     )
     const items = await findCartItems(userId)
-    return items.find(item => item.productId === productId)!
+    return items.find(item => item.id === existing[0].id)!
   } else {
     // Создаем новую запись
     const id = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     await pool.execute(
-      'INSERT INTO CartItem (id, userId, productId, quantity) VALUES (?, ?, ?, ?)',
-      [id, userId, productId, quantity]
+      'INSERT INTO CartItem (id, userId, productId, quantity, variantId) VALUES (?, ?, ?, ?, ?)',
+      [id, userId, productId, quantity, variantId]
     )
     const items = await findCartItems(userId)
     return items.find(item => item.id === id)!
@@ -347,10 +500,15 @@ export async function createOrder(data: {
   userId: string
   total: number
   shippingAddress: string
-  cartItems: Array<{ productId: string; quantity: number; price: number }>
+  cartItems: Array<{ productId: string; variantId?: string | null; quantity: number; price: number }>
   promoCodeId?: string | null
   discountAmount?: number
   subtotal?: number
+  addressId?: string | null
+  shippingMethodId?: string | null
+  shippingCost?: number
+  comment?: string | null
+  paymentMethod?: string
 }): Promise<any> {
   const connection = await pool.getConnection()
   await connection.beginTransaction()
@@ -359,12 +517,27 @@ export async function createOrder(data: {
     const subtotal = data.subtotal || data.total
     const discountAmount = data.discountAmount || 0
     const total = data.total
+    const shippingCost = data.shippingCost || 0
     
     // Создаем заказ
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     await connection.execute(
-      'INSERT INTO `Order` (id, userId, subtotal, discountAmount, total, shippingAddress, status, promoCodeId) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-      [orderId, data.userId, subtotal, discountAmount, total, data.shippingAddress, 'PENDING', data.promoCodeId || null]
+      'INSERT INTO `Order` (id, userId, subtotal, discountAmount, total, shippingAddress, status, promoCodeId, addressId, shippingMethodId, shippingCost, comment, paymentMethod) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+      [
+        orderId, 
+        data.userId, 
+        subtotal, 
+        discountAmount, 
+        total, 
+        data.shippingAddress, 
+        'PENDING', 
+        data.promoCodeId || null,
+        data.addressId || null,
+        data.shippingMethodId || null,
+        shippingCost,
+        data.comment || null,
+        data.paymentMethod || 'CASH'
+      ]
     )
     
     // Увеличиваем счетчик использования промокода, если он был использован
@@ -378,9 +551,22 @@ export async function createOrder(data: {
     // Создаем элементы заказа
     for (const item of data.cartItems) {
       const itemId = `orderitem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      
+      // Получаем название варианта, если есть
+      let variantName = null
+      if (item.variantId) {
+        const [variantRows] = await connection.execute(
+          'SELECT name, value FROM ProductVariant WHERE id = ?',
+          [item.variantId]
+        ) as any[]
+        if (variantRows[0]) {
+          variantName = `${variantRows[0].name}: ${variantRows[0].value}`
+        }
+      }
+      
       await connection.execute(
-        'INSERT INTO OrderItem (id, orderId, productId, quantity, price) VALUES (?, ?, ?, ?, ?)',
-        [itemId, orderId, item.productId, item.quantity, item.price]
+        'INSERT INTO OrderItem (id, orderId, productId, variantId, variantName, quantity, price) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [itemId, orderId, item.productId, item.variantId || null, variantName, item.quantity, item.price]
       )
     }
     
@@ -822,5 +1008,448 @@ export async function deleteReview(reviewId: string, userId: string): Promise<vo
     'DELETE FROM Review WHERE id = ? AND userId = ?',
     [reviewId, userId]
   )
+}
+
+// ==================== ВАРИАНТЫ ТОВАРОВ ====================
+
+export async function findProductVariants(productId: string): Promise<ProductVariant[]> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM ProductVariant WHERE productId = ? ORDER BY name, value',
+      [productId]
+    ) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findProductVariants:', error)
+    throw error
+  }
+}
+
+export async function findProductVariantById(variantId: string): Promise<ProductVariant | null> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM ProductVariant WHERE id = ?',
+      [variantId]
+    ) as any[]
+    return rows[0] || null
+  } catch (error) {
+    console.error('Database error in findProductVariantById:', error)
+    throw error
+  }
+}
+
+export async function createProductVariant(data: {
+  productId: string
+  name: string
+  value: string
+  sku?: string | null
+  price?: number | null
+  stock: number
+  image?: string | null
+}): Promise<ProductVariant> {
+  const id = `variant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  await pool.execute(
+    'INSERT INTO ProductVariant (id, productId, name, value, sku, price, stock, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, data.productId, data.name, data.value, data.sku || null, data.price || null, data.stock, data.image || null]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM ProductVariant WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+// ==================== ГАЛЕРЕЯ ИЗОБРАЖЕНИЙ ====================
+
+export async function findProductImages(productId: string): Promise<ProductImage[]> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM ProductImage WHERE productId = ? ORDER BY `order`, createdAt',
+      [productId]
+    ) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findProductImages:', error)
+    throw error
+  }
+}
+
+export async function createProductImage(data: {
+  productId: string
+  url: string
+  alt?: string | null
+  order?: number
+  isPrimary?: boolean
+}): Promise<ProductImage> {
+  const id = `img_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  // Если это первичное изображение, снимаем флаг с других
+  if (data.isPrimary) {
+    await pool.execute(
+      'UPDATE ProductImage SET isPrimary = false WHERE productId = ?',
+      [data.productId]
+    )
+  }
+  
+  await pool.execute(
+    'INSERT INTO ProductImage (id, productId, url, alt, `order`, isPrimary) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, data.productId, data.url, data.alt || null, data.order || 0, data.isPrimary || false]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM ProductImage WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+// ==================== АТРИБУТЫ ТОВАРА ====================
+
+export async function findProductAttributes(productId: string): Promise<ProductAttribute[]> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM ProductAttribute WHERE productId = ? ORDER BY `order`, createdAt',
+      [productId]
+    ) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findProductAttributes:', error)
+    throw error
+  }
+}
+
+export async function createProductAttribute(data: {
+  productId: string
+  name: string
+  value: string
+  order?: number
+}): Promise<ProductAttribute> {
+  const id = `attr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  await pool.execute(
+    'INSERT INTO ProductAttribute (id, productId, name, value, `order`) VALUES (?, ?, ?, ?, ?)',
+    [id, data.productId, data.name, data.value, data.order || 0]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM ProductAttribute WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+// ==================== АДРЕСНАЯ КНИГА ====================
+
+export async function findUserAddresses(userId: string): Promise<Address[]> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM Address WHERE userId = ? ORDER BY isDefault DESC, createdAt DESC',
+      [userId]
+    ) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findUserAddresses:', error)
+    throw error
+  }
+}
+
+export async function findAddressById(addressId: string, userId: string): Promise<Address | null> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM Address WHERE id = ? AND userId = ?',
+      [addressId, userId]
+    ) as any[]
+    return rows[0] || null
+  } catch (error) {
+    console.error('Database error in findAddressById:', error)
+    throw error
+  }
+}
+
+export async function createAddress(data: {
+  userId: string
+  type: 'SHIPPING' | 'BILLING' | 'BOTH'
+  firstName: string
+  lastName: string
+  phone?: string | null
+  country: string
+  region?: string | null
+  city: string
+  postalCode?: string | null
+  street: string
+  isDefault?: boolean
+}): Promise<Address> {
+  const id = `addr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  // Если это адрес по умолчанию, снимаем флаг с других адресов того же типа
+  if (data.isDefault) {
+    await pool.execute(
+      'UPDATE Address SET isDefault = false WHERE userId = ? AND type = ?',
+      [data.userId, data.type]
+    )
+  }
+  
+  await pool.execute(
+    'INSERT INTO Address (id, userId, type, firstName, lastName, phone, country, region, city, postalCode, street, isDefault) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+    [id, data.userId, data.type, data.firstName, data.lastName, data.phone || null, data.country, data.region || null, data.city, data.postalCode || null, data.street, data.isDefault || false]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM Address WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+export async function updateAddress(addressId: string, userId: string, data: Partial<Address>): Promise<Address> {
+  const updates: string[] = []
+  const values: any[] = []
+  
+  if (data.firstName !== undefined) {
+    updates.push('firstName = ?')
+    values.push(data.firstName)
+  }
+  if (data.lastName !== undefined) {
+    updates.push('lastName = ?')
+    values.push(data.lastName)
+  }
+  if (data.phone !== undefined) {
+    updates.push('phone = ?')
+    values.push(data.phone)
+  }
+  if (data.country !== undefined) {
+    updates.push('country = ?')
+    values.push(data.country)
+  }
+  if (data.region !== undefined) {
+    updates.push('region = ?')
+    values.push(data.region)
+  }
+  if (data.city !== undefined) {
+    updates.push('city = ?')
+    values.push(data.city)
+  }
+  if (data.postalCode !== undefined) {
+    updates.push('postalCode = ?')
+    values.push(data.postalCode)
+  }
+  if (data.street !== undefined) {
+    updates.push('street = ?')
+    values.push(data.street)
+  }
+  if (data.isDefault !== undefined) {
+    if (data.isDefault) {
+      // Снимаем флаг с других адресов
+      const [current] = await pool.execute(
+        'SELECT type FROM Address WHERE id = ?',
+        [addressId]
+      ) as any[]
+      if (current[0]) {
+        await pool.execute(
+          'UPDATE Address SET isDefault = false WHERE userId = ? AND type = ? AND id != ?',
+          [userId, current[0].type, addressId]
+        )
+      }
+    }
+    updates.push('isDefault = ?')
+    values.push(data.isDefault)
+  }
+  
+  if (updates.length === 0) {
+    throw new Error('No fields to update')
+  }
+  
+  values.push(addressId, userId)
+  await pool.execute(
+    `UPDATE Address SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
+    values
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM Address WHERE id = ?',
+    [addressId]
+  ) as any[]
+  
+  return rows[0]
+}
+
+export async function deleteAddress(addressId: string, userId: string): Promise<void> {
+  await pool.execute(
+    'DELETE FROM Address WHERE id = ? AND userId = ?',
+    [addressId, userId]
+  )
+}
+
+// ==================== СПОСОБЫ ДОСТАВКИ ====================
+
+export async function findShippingMethods(activeOnly: boolean = true): Promise<ShippingMethod[]> {
+  try {
+    const sql = activeOnly
+      ? 'SELECT * FROM ShippingMethod WHERE isActive = true ORDER BY `order`, name'
+      : 'SELECT * FROM ShippingMethod ORDER BY `order`, name'
+    
+    const [rows] = await pool.execute(sql) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findShippingMethods:', error)
+    throw error
+  }
+}
+
+export async function findShippingMethodById(id: string): Promise<ShippingMethod | null> {
+  try {
+    const [rows] = await pool.execute(
+      'SELECT * FROM ShippingMethod WHERE id = ?',
+      [id]
+    ) as any[]
+    return rows[0] || null
+  } catch (error) {
+    console.error('Database error in findShippingMethodById:', error)
+    throw error
+  }
+}
+
+export async function calculateShippingCost(methodId: string, orderTotal: number): Promise<number> {
+  const method = await findShippingMethodById(methodId)
+  if (!method) return 0
+  
+  // Если есть порог бесплатной доставки и сумма заказа его превышает
+  if (method.freeShippingThreshold && orderTotal >= method.freeShippingThreshold) {
+    return 0
+  }
+  
+  return method.price
+}
+
+// ==================== РЕЗЕРВИРОВАНИЕ ТОВАРОВ ====================
+
+export async function reserveProducts(orderId: string, items: Array<{ productId: string; variantId?: string | null; quantity: number }>): Promise<ProductReservation[]> {
+  const reservations: ProductReservation[] = []
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000) // 30 минут
+  
+  for (const item of items) {
+    const id = `reserve_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    
+    await pool.execute(
+      'INSERT INTO ProductReservation (id, orderId, productId, variantId, quantity, status, expiresAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
+      [id, orderId, item.productId, item.variantId || null, item.quantity, 'PENDING', expiresAt]
+    )
+    
+    const [rows] = await pool.execute(
+      'SELECT * FROM ProductReservation WHERE id = ?',
+      [id]
+    ) as any[]
+    
+    reservations.push(rows[0])
+  }
+  
+  return reservations
+}
+
+export async function confirmReservations(orderId: string): Promise<void> {
+  await pool.execute(
+    'UPDATE ProductReservation SET status = "CONFIRMED" WHERE orderId = ? AND status = "PENDING"',
+    [orderId]
+  )
+  
+  // Списываем товары со склада
+  const [reservations] = await pool.execute(
+    'SELECT * FROM ProductReservation WHERE orderId = ? AND status = "CONFIRMED"',
+    [orderId]
+  ) as any[]
+  
+  for (const res of reservations) {
+    if (res.variantId) {
+      await pool.execute(
+        'UPDATE ProductVariant SET stock = stock - ? WHERE id = ?',
+        [res.quantity, res.variantId]
+      )
+    } else {
+      await pool.execute(
+        'UPDATE Product SET stock = stock - ? WHERE id = ?',
+        [res.quantity, res.productId]
+      )
+    }
+  }
+}
+
+export async function releaseReservations(orderId: string): Promise<void> {
+  await pool.execute(
+    'UPDATE ProductReservation SET status = "RELEASED" WHERE orderId = ? AND status IN ("PENDING", "CONFIRMED")',
+    [orderId]
+  )
+}
+
+export async function cleanupExpiredReservations(): Promise<void> {
+  await pool.execute(
+    'UPDATE ProductReservation SET status = "EXPIRED" WHERE status = "PENDING" AND expiresAt < NOW()'
+  )
+}
+
+// ==================== УВЕДОМЛЕНИЯ ====================
+
+export async function createNotification(data: {
+  userId: string
+  type: 'ORDER' | 'SHIPMENT' | 'PAYMENT' | 'RETURN' | 'REVIEW' | 'SYSTEM'
+  title: string
+  message: string
+  link?: string | null
+}): Promise<Notification> {
+  const id = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  await pool.execute(
+    'INSERT INTO Notification (id, userId, type, title, message, link) VALUES (?, ?, ?, ?, ?, ?)',
+    [id, data.userId, data.type, data.title, data.message, data.link || null]
+  )
+  
+  const [rows] = await pool.execute(
+    'SELECT * FROM Notification WHERE id = ?',
+    [id]
+  ) as any[]
+  
+  return rows[0]
+}
+
+export async function findUserNotifications(userId: string, unreadOnly: boolean = false): Promise<Notification[]> {
+  try {
+    const sql = unreadOnly
+      ? 'SELECT * FROM Notification WHERE userId = ? AND read = false ORDER BY createdAt DESC'
+      : 'SELECT * FROM Notification WHERE userId = ? ORDER BY createdAt DESC LIMIT 50'
+    
+    const [rows] = await pool.execute(sql, [userId]) as any[]
+    return rows
+  } catch (error) {
+    console.error('Database error in findUserNotifications:', error)
+    throw error
+  }
+}
+
+export async function markNotificationAsRead(notificationId: string, userId: string): Promise<void> {
+  await pool.execute(
+    'UPDATE Notification SET read = true WHERE id = ? AND userId = ?',
+    [notificationId, userId]
+  )
+}
+
+export async function markAllNotificationsAsRead(userId: string): Promise<void> {
+  await pool.execute(
+    'UPDATE Notification SET read = true WHERE userId = ? AND read = false',
+    [userId]
+  )
+}
+
+export async function getUnreadNotificationCount(userId: string): Promise<number> {
+  const [rows] = await pool.execute(
+    'SELECT COUNT(*) as count FROM Notification WHERE userId = ? AND read = false',
+    [userId]
+  ) as any[]
+  
+  return rows[0]?.count || 0
 }
 

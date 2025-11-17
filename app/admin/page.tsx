@@ -213,9 +213,9 @@ export default function AdminPage() {
         </TabsList>
 
         <TabsContent value="products" className="space-y-6">
-          <Card className="shadow-xl border-2 border-blue-100">
-            <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
-              <CardTitle className="text-2xl flex items-center gap-2">
+          <Card className="shadow-2xl border-2 border-blue-200/50 bg-white/90 backdrop-blur-md">
+            <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
+              <CardTitle className="text-2xl flex items-center gap-2 font-bold">
                 <Plus className="h-6 w-6 text-blue-600" />
                 {editingProduct ? "Редактировать товар" : "Добавить новый товар"}
               </CardTitle>
@@ -297,7 +297,7 @@ export default function AdminPage() {
                 <div className="flex gap-2 pt-4">
                   <Button 
                     type="submit"
-                    className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg"
+                    className="bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold"
                   >
                     {editingProduct ? "Обновить" : "Создать товар"}
                   </Button>
@@ -315,7 +315,7 @@ export default function AdminPage() {
             <h2 className="text-xl sm:text-2xl font-bold mb-4 text-gray-800">Все товары ({products.length})</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {products.map((product) => (
-                <Card key={product.id} className="hover:shadow-xl transition-shadow border-2 border-blue-50 overflow-hidden">
+                <Card key={product.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 overflow-hidden bg-white/80 backdrop-blur-sm hover:-translate-y-1">
                   <div className="relative w-full h-48 overflow-hidden">
                     <Image
                       src={product.image || "/placeholder.jpg"}
@@ -376,8 +376,8 @@ export default function AdminPage() {
                 const statusColor = statusColors[order.status] || "bg-gray-100 text-gray-800 border-gray-300"
                 
                 return (
-                  <Card key={order.id} className="hover:shadow-xl transition-shadow border-2 border-blue-50">
-                    <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b-2 border-blue-100">
+                  <Card key={order.id} className="hover:shadow-2xl transition-all duration-300 border-2 border-blue-100/50 hover:border-blue-400 bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                    <CardHeader className="bg-gradient-to-r from-blue-50 via-indigo-50 to-purple-50 border-b-2 border-blue-200/50">
                       <div className="flex justify-between items-start flex-wrap gap-4">
                         <div>
                           <CardTitle className="text-xl mb-2">Заказ #{order.id.slice(-8)}</CardTitle>
