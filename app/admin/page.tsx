@@ -71,6 +71,7 @@ export default function AdminPage() {
     }
     fetchData()
     fetchShippingMethods()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session])
 
   const fetchShippingMethods = async () => {

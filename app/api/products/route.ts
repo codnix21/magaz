@@ -29,13 +29,58 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { name, description, price, image, category, stock } = body
 
+    // Валидация входных данных
+    if (!name || typeof name !== 'string' || name.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product name is required and must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    if (!description || typeof description !== 'string' || description.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product description is required and must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    const priceNum = parseFloat(price)
+    if (isNaN(priceNum) || priceNum < 0) {
+      return NextResponse.json(
+        { error: "Price must be a valid positive number" },
+        { status: 400 }
+      )
+    }
+
+    if (!image || typeof image !== 'string' || image.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product image URL is required" },
+        { status: 400 }
+      )
+    }
+
+    if (!category || typeof category !== 'string' || category.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product category is required" },
+        { status: 400 }
+      )
+    }
+
+    const stockNum = parseInt(stock)
+    if (isNaN(stockNum) || stockNum < 0) {
+      return NextResponse.json(
+        { error: "Stock must be a valid non-negative integer" },
+        { status: 400 }
+      )
+    }
+
     const product = await createProduct({
-      name,
-      description,
-      price: parseFloat(price),
-      image,
-      category,
-      stock: parseInt(stock),
+      name: name.trim(),
+      description: description.trim(),
+      price: priceNum,
+      image: image.trim(),
+      category: category.trim(),
+      stock: stockNum,
     })
 
     return NextResponse.json(product, { status: 201 })

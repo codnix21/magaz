@@ -43,9 +43,25 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { orderId, reason, refundAmount } = body
 
-    if (!orderId || refundAmount === undefined) {
+    // Валидация входных данных
+    if (!orderId || typeof orderId !== 'string' || orderId.trim().length === 0) {
       return NextResponse.json(
-        { error: "Order ID and refund amount are required" },
+        { error: "Order ID is required and must be a non-empty string" },
+        { status: 400 }
+      )
+    }
+
+    const refundAmountNum = parseFloat(refundAmount)
+    if (isNaN(refundAmountNum) || refundAmountNum < 0) {
+      return NextResponse.json(
+        { error: "Refund amount must be a valid non-negative number" },
+        { status: 400 }
+      )
+    }
+
+    if (reason && (typeof reason !== 'string' || reason.trim().length > 1000)) {
+      return NextResponse.json(
+        { error: "Reason must be a string with maximum 1000 characters" },
         { status: 400 }
       )
     }
@@ -68,7 +84,7 @@ export async function POST(request: Request) {
     }
 
     // Проверяем, что сумма возврата не превышает сумму заказа
-    if (refundAmount > order.total) {
+    if (refundAmountNum > order.total) {
       return NextResponse.json(
         { error: "Refund amount cannot exceed order total" },
         { status: 400 }
@@ -76,10 +92,10 @@ export async function POST(request: Request) {
     }
 
     const orderReturn = await createOrderReturn({
-      orderId,
+      orderId: orderId.trim(),
       userId: session.user.id,
-      reason,
-      refundAmount,
+      reason: reason ? reason.trim() : null,
+      refundAmount: refundAmountNum,
     })
 
     return NextResponse.json(orderReturn, { status: 201 })

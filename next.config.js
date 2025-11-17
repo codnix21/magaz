@@ -28,6 +28,26 @@ const nextConfig = {
       exclude: ['error', 'warn'],
     } : false,
   },
+  // Исключаем системные файлы Windows из отслеживания
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.watchOptions = {
+        ...config.watchOptions,
+        ignored: [
+          '**/node_modules/**',
+          '**/.git/**',
+          '**/.next/**',
+          '**/pagefile.sys',
+          '**/hiberfil.sys',
+          '**/swapfile.sys',
+          '**/System Volume Information/**',
+          '**/Thumbs.db',
+          '**/Desktop.ini',
+        ],
+      }
+    }
+    return config
+  },
 }
 
 module.exports = nextConfig

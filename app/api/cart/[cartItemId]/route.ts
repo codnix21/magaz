@@ -20,7 +20,23 @@ export async function PUT(
     const body = await request.json()
     const { quantity } = body
 
-    const cartItem = await updateCartItem(params.cartItemId, parseInt(quantity))
+    // Валидация входных данных
+    if (!params.cartItemId || typeof params.cartItemId !== 'string' || params.cartItemId.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Cart item ID is required" },
+        { status: 400 }
+      )
+    }
+
+    const quantityNum = parseInt(quantity)
+    if (isNaN(quantityNum) || quantityNum < 1 || quantityNum > 999) {
+      return NextResponse.json(
+        { error: "Quantity must be between 1 and 999" },
+        { status: 400 }
+      )
+    }
+
+    const cartItem = await updateCartItem(params.cartItemId.trim(), quantityNum)
 
     return NextResponse.json(cartItem)
   } catch (error) {
@@ -46,7 +62,15 @@ export async function DELETE(
       )
     }
 
-    await deleteCartItem(params.cartItemId)
+    // Валидация входных данных
+    if (!params.cartItemId || typeof params.cartItemId !== 'string' || params.cartItemId.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Cart item ID is required" },
+        { status: 400 }
+      )
+    }
+
+    await deleteCartItem(params.cartItemId.trim())
 
     return NextResponse.json({ message: "Item removed from cart" })
   } catch (error) {

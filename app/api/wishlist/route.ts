@@ -42,14 +42,14 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { productId } = body
 
-    if (!productId) {
+    if (!productId || typeof productId !== 'string' || productId.trim().length === 0) {
       return NextResponse.json(
-        { error: "Missing productId" },
+        { error: "Product ID is required and must be a non-empty string" },
         { status: 400 }
       )
     }
 
-    const wishlistItem = await addToWishlist(session.user.id, productId)
+    const wishlistItem = await addToWishlist(session.user.id, productId.trim())
 
     return NextResponse.json(wishlistItem, { status: 201 })
   } catch (error: any) {
@@ -76,14 +76,14 @@ export async function DELETE(request: Request) {
     const { searchParams } = new URL(request.url)
     const productId = searchParams.get("productId")
 
-    if (!productId) {
+    if (!productId || typeof productId !== 'string' || productId.trim().length === 0) {
       return NextResponse.json(
-        { error: "Missing productId" },
+        { error: "Product ID is required and must be a non-empty string" },
         { status: 400 }
       )
     }
 
-    await removeFromWishlist(session.user.id, productId)
+    await removeFromWishlist(session.user.id, productId.trim())
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

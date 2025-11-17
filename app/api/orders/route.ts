@@ -62,17 +62,66 @@ export async function POST(request: Request) {
       paymentMethod = 'cash'
     } = body
 
-    if (!cartItems || cartItems.length === 0) {
+    // Валидация входных данных
+    if (!cartItems || !Array.isArray(cartItems) || cartItems.length === 0) {
       return NextResponse.json(
         { error: "Cart is empty" },
         { status: 400 }
       )
     }
 
+    if (!shippingAddress || typeof shippingAddress !== 'string' || shippingAddress.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Shipping address is required" },
+        { status: 400 }
+      )
+    }
+
+    const shippingCostNum = parseFloat(shippingCost) || 0
+    if (isNaN(shippingCostNum) || shippingCostNum < 0) {
+      return NextResponse.json(
+        { error: "Shipping cost must be a valid non-negative number" },
+        { status: 400 }
+      )
+    }
+
+    if (paymentMethod && !['cash', 'online'].includes(paymentMethod)) {
+      return NextResponse.json(
+        { error: "Payment method must be 'cash' or 'online'" },
+        { status: 400 }
+      )
+    }
+
+    // Валидация элементов корзины
+    for (const item of cartItems) {
+      if (!item.productId || typeof item.productId !== 'string') {
+        return NextResponse.json(
+          { error: "Each cart item must have a valid productId" },
+          { status: 400 }
+        )
+      }
+      const quantity = parseInt(item.quantity)
+      if (isNaN(quantity) || quantity < 1 || quantity > 999) {
+        return NextResponse.json(
+          { error: "Each cart item must have a valid quantity between 1 and 999" },
+          { status: 400 }
+        )
+      }
+      if (!item.product || !item.product.price) {
+        return NextResponse.json(
+          { error: "Each cart item must have product information with price" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Вычисляем субтотал (сумма до скидки)
     const subtotal = cartItems.reduce(
-      (sum: number, item: any) => {
+      (sum: number, item: { variant?: { price?: number }, product: { price: number, discountPercent?: number }, quantity: number }) => {
         const itemPrice = item.variant?.price || item.product.price
+        if (!itemPrice || isNaN(itemPrice)) {
+          return sum
+        }
         const discount = item.product.discountPercent || 0
         const finalPrice = discount > 0 
           ? Math.round(itemPrice * (1 - discount / 100))
@@ -114,7 +163,7 @@ export async function POST(request: Request) {
       promoCodeId,
       discountAmount,
       subtotal,
-      cartItems: cartItems.map((item: any) => ({
+      cartItems: cartItems.map((item: { productId: string, variantId?: string | null, quantity: number, variant?: { price?: number }, product: { price: number } }) => ({
         productId: item.productId,
         variantId: item.variantId || null,
         quantity: item.quantity,
@@ -126,7 +175,7 @@ export async function POST(request: Request) {
     try {
       await reserveProducts(
         order.id,
-        cartItems.map((item: any) => ({
+        cartItems.map((item: { productId: string, variantId?: string | null, quantity: number }) => ({
           productId: item.productId,
           variantId: item.variantId || null,
           quantity: item.quantity,
@@ -157,7 +206,7 @@ export async function POST(request: Request) {
           discountAmount: order.discountAmount || 0,
           subtotal: order.subtotal || order.total,
           shippingAddress: order.shippingAddress,
-          items: orderWithItems?.items?.map((item: any) => ({
+          items: orderWithItems?.items?.map((item: { product?: { name?: string }, quantity: number, price: number }) => ({
             name: item.product?.name || 'Товар',
             quantity: item.quantity,
             price: item.price,

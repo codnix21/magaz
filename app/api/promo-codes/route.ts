@@ -45,15 +45,68 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { code, description, discountType, discountValue, minPurchaseAmount, maxDiscountAmount, usageLimit, validFrom, validUntil } = body
 
-    if (!code || !discountType || !discountValue) {
+    // Валидация входных данных
+    if (!code || typeof code !== 'string' || code.trim().length === 0) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Promo code is required and must be a non-empty string" },
         { status: 400 }
       )
     }
 
+    if (!discountType || !['PERCENTAGE', 'FIXED'].includes(discountType)) {
+      return NextResponse.json(
+        { error: "Discount type must be 'PERCENTAGE' or 'FIXED'" },
+        { status: 400 }
+      )
+    }
+
+    const discountValueNum = parseFloat(discountValue)
+    if (isNaN(discountValueNum) || discountValueNum <= 0) {
+      return NextResponse.json(
+        { error: "Discount value must be a valid positive number" },
+        { status: 400 }
+      )
+    }
+
+    if (discountType === 'PERCENTAGE' && discountValueNum > 100) {
+      return NextResponse.json(
+        { error: "Percentage discount cannot exceed 100%" },
+        { status: 400 }
+      )
+    }
+
+    if (minPurchaseAmount !== undefined && minPurchaseAmount !== null) {
+      const minPurchaseAmountNum = parseFloat(minPurchaseAmount)
+      if (isNaN(minPurchaseAmountNum) || minPurchaseAmountNum < 0) {
+        return NextResponse.json(
+          { error: "Minimum purchase amount must be a valid non-negative number" },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (maxDiscountAmount !== undefined && maxDiscountAmount !== null) {
+      const maxDiscountAmountNum = parseFloat(maxDiscountAmount)
+      if (isNaN(maxDiscountAmountNum) || maxDiscountAmountNum < 0) {
+        return NextResponse.json(
+          { error: "Maximum discount amount must be a valid non-negative number" },
+          { status: 400 }
+        )
+      }
+    }
+
+    if (usageLimit !== undefined && usageLimit !== null) {
+      const usageLimitNum = parseInt(usageLimit)
+      if (isNaN(usageLimitNum) || usageLimitNum < 1) {
+        return NextResponse.json(
+          { error: "Usage limit must be a valid positive integer" },
+          { status: 400 }
+        )
+      }
+    }
+
     // Проверяем, не существует ли уже промокод с таким кодом
-    const existing = await findPromoCodeByCode(code)
+    const existing = await findPromoCodeByCode(code.toUpperCase().trim())
     if (existing) {
       return NextResponse.json(
         { error: "Promo code already exists" },
@@ -62,13 +115,13 @@ export async function POST(request: Request) {
     }
 
     const promoCode = await createPromoCode({
-      code,
-      description,
+      code: code.toUpperCase().trim(),
+      description: description ? description.trim() : null,
       discountType,
-      discountValue,
-      minPurchaseAmount,
-      maxDiscountAmount,
-      usageLimit,
+      discountValue: discountValueNum,
+      minPurchaseAmount: minPurchaseAmount !== undefined && minPurchaseAmount !== null ? parseFloat(minPurchaseAmount) : null,
+      maxDiscountAmount: maxDiscountAmount !== undefined && maxDiscountAmount !== null ? parseFloat(maxDiscountAmount) : null,
+      usageLimit: usageLimit !== undefined && usageLimit !== null ? parseInt(usageLimit) : null,
       validFrom: validFrom ? new Date(validFrom) : undefined,
       validUntil: validUntil ? new Date(validUntil) : undefined,
     })

@@ -39,7 +39,35 @@ export async function POST(request: Request) {
     const body = await request.json()
     const { productId, variantId, quantity } = body
 
-    const cartItem = await addToCart(session.user.id, productId, quantity || 1, variantId || null)
+    // Валидация входных данных
+    if (!productId || typeof productId !== 'string' || productId.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      )
+    }
+
+    const quantityNum = quantity ? parseInt(quantity) : 1
+    if (isNaN(quantityNum) || quantityNum < 1 || quantityNum > 999) {
+      return NextResponse.json(
+        { error: "Quantity must be between 1 and 999" },
+        { status: 400 }
+      )
+    }
+
+    if (variantId && (typeof variantId !== 'string' || variantId.trim().length === 0)) {
+      return NextResponse.json(
+        { error: "Variant ID must be a valid string if provided" },
+        { status: 400 }
+      )
+    }
+
+    const cartItem = await addToCart(
+      session.user.id, 
+      productId.trim(), 
+      quantityNum, 
+      variantId ? variantId.trim() : null
+    )
 
     return NextResponse.json(cartItem, { status: 201 })
   } catch (error) {

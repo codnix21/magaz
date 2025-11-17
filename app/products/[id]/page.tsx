@@ -66,13 +66,17 @@ export default function ProductPage() {
   const [selectedImageIndex, setSelectedImageIndex] = useState(0)
 
   useEffect(() => {
-    fetchProduct()
+    if (params.id) {
+      fetchProduct()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [params.id])
 
   useEffect(() => {
     if (session && product) {
       checkWishlist()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session, product])
 
   const fetchProduct = async () => {

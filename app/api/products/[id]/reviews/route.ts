@@ -46,21 +46,37 @@ export async function POST(
 
     const resolvedParams = await Promise.resolve(params)
     const { id: productId } = resolvedParams
+
+    if (!productId || typeof productId !== 'string' || productId.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
     const { rating, comment } = body
 
-    if (!rating || rating < 1 || rating > 5) {
+    const ratingNum = parseInt(rating)
+    if (isNaN(ratingNum) || ratingNum < 1 || ratingNum > 5) {
       return NextResponse.json(
         { error: "Rating must be between 1 and 5" },
         { status: 400 }
       )
     }
 
+    if (comment && (typeof comment !== 'string' || comment.trim().length > 2000)) {
+      return NextResponse.json(
+        { error: "Comment must be a string with maximum 2000 characters" },
+        { status: 400 }
+      )
+    }
+
     const review = await createReview({
       userId: session.user.id,
-      productId,
-      rating,
-      comment,
+      productId: productId.trim(),
+      rating: ratingNum,
+      comment: comment ? comment.trim() : null,
     })
 
     return NextResponse.json(review, { status: 201 })
@@ -88,17 +104,27 @@ export async function DELETE(
       )
     }
 
-    const { searchParams } = new URL(request.url)
-    const reviewId = searchParams.get("reviewId")
+    const resolvedParams = await Promise.resolve(params)
+    const { id: productId } = resolvedParams
 
-    if (!reviewId) {
+    if (!productId || typeof productId !== 'string' || productId.trim().length === 0) {
       return NextResponse.json(
-        { error: "Missing reviewId" },
+        { error: "Product ID is required" },
         { status: 400 }
       )
     }
 
-    await deleteReview(reviewId, session.user.id)
+    const { searchParams } = new URL(request.url)
+    const reviewId = searchParams.get("reviewId")
+
+    if (!reviewId || typeof reviewId !== 'string' || reviewId.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Review ID is required" },
+        { status: 400 }
+      )
+    }
+
+    await deleteReview(reviewId.trim(), session.user.id)
 
     return NextResponse.json({ success: true })
   } catch (error: any) {

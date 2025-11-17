@@ -36,13 +36,20 @@ function getDbConfig() {
     }
   }
   
-  // Значения по умолчанию
+  // Значения по умолчанию - ТОЛЬКО для разработки
+  // В продакшене ВСЕ значения должны быть в переменных окружения!
+  if (!process.env.DB_HOST || !process.env.DB_USER || !process.env.DB_PASSWORD || !process.env.DB_NAME) {
+    throw new Error(
+      'Database configuration is missing! Please set DB_HOST, DB_USER, DB_PASSWORD, and DB_NAME environment variables.'
+    )
+  }
+
   const config = {
-    host: process.env.DB_HOST || 'codnix.ru',
+    host: process.env.DB_HOST,
     port: parseInt(process.env.DB_PORT || '3306'),
-    user: process.env.DB_USER || 'mag',
-    password: process.env.DB_PASSWORD || 'Magazin1337',
-    database: process.env.DB_NAME || 'internet_magazin',
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
     ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   }
   

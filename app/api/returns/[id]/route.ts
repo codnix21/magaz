@@ -53,16 +53,44 @@ export async function PATCH(
       )
     }
 
+    if (!params.id || typeof params.id !== 'string' || params.id.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Return ID is required" },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
     const { status, refundStatus, adminComment } = body
 
+    const validStatuses = ['PENDING', 'APPROVED', 'REJECTED', 'PROCESSING', 'COMPLETED']
+    const validRefundStatuses = ['PENDING', 'PROCESSING', 'COMPLETED', 'FAILED']
+
     if (status) {
-      const return_ = await updateOrderReturnStatus(params.id, status, adminComment)
+      if (!validStatuses.includes(status)) {
+        return NextResponse.json(
+          { error: `Status must be one of: ${validStatuses.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      if (adminComment && (typeof adminComment !== 'string' || adminComment.trim().length > 1000)) {
+        return NextResponse.json(
+          { error: "Admin comment must be a string with maximum 1000 characters" },
+          { status: 400 }
+        )
+      }
+      const return_ = await updateOrderReturnStatus(params.id.trim(), status, adminComment ? adminComment.trim() : null)
       return NextResponse.json(return_)
     }
 
     if (refundStatus) {
-      const return_ = await updateOrderReturnRefundStatus(params.id, refundStatus)
+      if (!validRefundStatuses.includes(refundStatus)) {
+        return NextResponse.json(
+          { error: `Refund status must be one of: ${validRefundStatuses.join(', ')}` },
+          { status: 400 }
+        )
+      }
+      const return_ = await updateOrderReturnRefundStatus(params.id.trim(), refundStatus)
       return NextResponse.json(return_)
     }
 

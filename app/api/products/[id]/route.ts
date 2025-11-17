@@ -53,17 +53,90 @@ export async function PUT(
 ) {
   try {
     const resolvedParams = await Promise.resolve(params)
+    
+    if (!resolvedParams.id || typeof resolvedParams.id !== 'string' || resolvedParams.id.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      )
+    }
+
     const body = await request.json()
     const { name, description, price, image, category, stock } = body
 
-    const product = await updateProduct(resolvedParams.id, {
-      name,
-      description,
-      price: parseFloat(price),
-      image,
-      category,
-      stock: parseInt(stock),
-    })
+    // Валидация входных данных
+    const updates: any = {}
+    
+    if (name !== undefined) {
+      if (typeof name !== 'string' || name.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Product name must be a non-empty string" },
+          { status: 400 }
+        )
+      }
+      updates.name = name.trim()
+    }
+
+    if (description !== undefined) {
+      if (typeof description !== 'string' || description.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Product description must be a non-empty string" },
+          { status: 400 }
+        )
+      }
+      updates.description = description.trim()
+    }
+
+    if (price !== undefined) {
+      const priceNum = parseFloat(price)
+      if (isNaN(priceNum) || priceNum < 0) {
+        return NextResponse.json(
+          { error: "Price must be a valid positive number" },
+          { status: 400 }
+        )
+      }
+      updates.price = priceNum
+    }
+
+    if (image !== undefined) {
+      if (typeof image !== 'string' || image.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Product image URL must be a non-empty string" },
+          { status: 400 }
+        )
+      }
+      updates.image = image.trim()
+    }
+
+    if (category !== undefined) {
+      if (typeof category !== 'string' || category.trim().length === 0) {
+        return NextResponse.json(
+          { error: "Product category must be a non-empty string" },
+          { status: 400 }
+        )
+      }
+      updates.category = category.trim()
+    }
+
+    if (stock !== undefined) {
+      const stockNum = parseInt(stock)
+      if (isNaN(stockNum) || stockNum < 0) {
+        return NextResponse.json(
+          { error: "Stock must be a valid non-negative integer" },
+          { status: 400 }
+        )
+      }
+      updates.stock = stockNum
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "At least one field must be provided for update" },
+        { status: 400 }
+      )
+    }
+
+    const product = await updateProduct(resolvedParams.id.trim(), updates)
 
     return NextResponse.json(product)
   } catch (error) {
@@ -81,7 +154,15 @@ export async function DELETE(
 ) {
   try {
     const resolvedParams = await Promise.resolve(params)
-    await deleteProduct(resolvedParams.id)
+    
+    if (!resolvedParams.id || typeof resolvedParams.id !== 'string' || resolvedParams.id.trim().length === 0) {
+      return NextResponse.json(
+        { error: "Product ID is required" },
+        { status: 400 }
+      )
+    }
+
+    await deleteProduct(resolvedParams.id.trim())
 
     return NextResponse.json({ message: "Product deleted" })
   } catch (error) {
