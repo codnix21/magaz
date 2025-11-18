@@ -100,7 +100,7 @@ export default function OrdersPage() {
             Начните делать покупки, чтобы увидеть свои заказы здесь
           </p>
           <Link href="/products">
-            <Button className="btn-gradient rounded-xl font-bold px-8 py-6">
+            <Button className="btn-gradient rounded-xl font-bold px-6 py-5 sm:px-8 sm:py-6 text-sm sm:text-base">
               Перейти к товарам
             </Button>
           </Link>
@@ -120,15 +120,15 @@ export default function OrdersPage() {
             return (
               <Card key={order.id} className="card-modern hover:border-blue-300/80 overflow-hidden animate-fade-in">
                 <div className="gradient-bg-primary text-white border-b-2 border-white/20">
-                  <CardHeader>
-                    <div className="flex justify-between items-start flex-wrap gap-4">
-                      <div>
+                  <CardHeader className="p-4 sm:p-6">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
+                      <div className="flex-1">
                         <Link href={`/orders/${order.id}`}>
-                          <CardTitle className="text-2xl mb-2 font-black text-white hover:text-blue-200 transition-colors cursor-pointer">
+                          <CardTitle className="text-xl sm:text-2xl mb-2 font-black text-white hover:text-blue-200 transition-colors cursor-pointer">
                             Заказ #{order.id.slice(-8)}
                           </CardTitle>
                         </Link>
-                        <p className="text-sm text-white/90">
+                        <p className="text-xs sm:text-sm text-white/90">
                           {new Date(order.createdAt).toLocaleDateString("ru-RU", {
                             year: "numeric",
                             month: "long",
@@ -138,28 +138,28 @@ export default function OrdersPage() {
                           })}
                         </p>
                       </div>
-                      <div className="text-right">
-                        <p className="text-3xl font-black text-white mb-2">
+                      <div className="text-left sm:text-right w-full sm:w-auto">
+                        <p className="text-2xl sm:text-3xl font-black text-white mb-2">
                           {order.total.toLocaleString("ru-RU")} ₽
                         </p>
-                        <span className={`px-3 py-1 rounded-full text-xs font-semibold border-2 ${statusColor}`}>
+                        <span className={`px-2.5 py-1 sm:px-3 sm:py-1 rounded-full text-xs font-semibold border-2 ${statusColor} inline-block`}>
                           {getStatusLabel(order.status)}
                         </span>
                       </div>
                     </div>
                   </CardHeader>
                 </div>
-                <CardContent className="pt-6">
-                  <div className="space-y-3 mb-6">
-                    <p className="font-semibold text-lg mb-3">Товары в заказе:</p>
+                <CardContent className="pt-4 sm:pt-6 p-4 sm:p-6">
+                  <div className="space-y-2 sm:space-y-3 mb-4 sm:mb-6">
+                    <p className="font-semibold text-base sm:text-lg mb-2 sm:mb-3">Товары в заказе:</p>
                     {order.orderItems.map((item) => (
                       <div
                         key={item.id}
-                        className="flex justify-between items-center p-3 bg-gray-50 rounded-lg"
+                        className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-gray-50 rounded-lg"
                       >
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 sm:gap-3 flex-1 min-w-0">
                           {item.product.image && (
-                            <div className="relative w-12 h-12 rounded overflow-hidden">
+                            <div className="relative w-10 h-10 sm:w-12 sm:h-12 rounded overflow-hidden flex-shrink-0">
                               <Image
                                 src={item.product.image}
                                 alt={item.product.name}
@@ -169,12 +169,12 @@ export default function OrdersPage() {
                               />
                             </div>
                           )}
-                          <div>
-                            <span className="font-medium">{item.product.name}</span>
-                            <span className="text-sm text-muted-foreground ml-2">× {item.quantity}</span>
+                          <div className="min-w-0 flex-1">
+                            <span className="font-medium text-sm sm:text-base block truncate">{item.product.name}</span>
+                            <span className="text-xs sm:text-sm text-muted-foreground">× {item.quantity}</span>
                           </div>
                         </div>
-                        <span className="font-semibold text-blue-600">
+                        <span className="font-semibold text-blue-600 text-sm sm:text-base whitespace-nowrap">
                           {(item.price * item.quantity).toLocaleString("ru-RU")} ₽
                         </span>
                       </div>

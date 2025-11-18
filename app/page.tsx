@@ -41,25 +41,25 @@ export default async function HomePage() {
         
         <div className="container relative z-10">
           <div className="max-w-6xl mx-auto text-center animate-fade-in">
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl xl:text-9xl font-black mb-8 sm:mb-10 px-4 leading-tight tracking-tight">
-              <span className="block mb-4 animate-slide-in text-white/90">Добро пожаловать в</span>
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-black mb-6 sm:mb-8 md:mb-10 px-4 leading-tight tracking-tight">
+              <span className="block mb-2 sm:mb-3 md:mb-4 animate-slide-in text-white/90 text-2xl sm:text-3xl md:text-4xl lg:text-5xl">Добро пожаловать в</span>
               <span className="block bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent drop-shadow-2xl animate-slide-in glow-shadow-purple" style={{ animationDelay: '0.2s' }}>
                 наш магазин!
               </span>
             </h1>
-            <p className="text-xl sm:text-2xl md:text-3xl lg:text-4xl mb-12 sm:mb-16 text-white/95 px-4 max-w-4xl mx-auto leading-relaxed font-semibold animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <p className="text-lg sm:text-xl md:text-2xl lg:text-3xl mb-8 sm:mb-12 md:mb-16 text-white/95 px-4 max-w-4xl mx-auto leading-relaxed font-semibold animate-fade-in" style={{ animationDelay: '0.4s' }}>
               Откройте для себя лучшие товары по выгодным ценам
             </p>
-            <div className="flex flex-col sm:flex-row gap-5 sm:gap-6 justify-center px-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
-              <Link href="/products">
-                <Button size="lg" className="bg-white text-blue-600 hover:bg-blue-50 hover:scale-110 text-lg sm:text-xl px-12 py-8 shadow-2xl shadow-blue-500/50 transition-all duration-300 font-bold rounded-2xl hover:shadow-blue-500/70 glow-shadow">
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5 md:gap-6 justify-center px-4 animate-fade-in" style={{ animationDelay: '0.6s' }}>
+              <Link href="/products" className="w-full sm:w-auto">
+                <Button size="lg" className="w-full sm:w-auto bg-white text-blue-600 hover:bg-blue-50 hover:scale-105 sm:hover:scale-110 text-base sm:text-lg md:text-xl px-6 sm:px-8 md:px-12 py-6 sm:py-7 md:py-8 shadow-2xl shadow-blue-500/50 transition-all duration-300 font-bold rounded-xl sm:rounded-2xl hover:shadow-blue-500/70 glow-shadow">
                   Посмотреть все товары
                   <span className="ml-2 inline-block group-hover:translate-x-1 transition-transform">→</span>
                 </Button>
               </Link>
-              <Link href="/products?promo=true">
-                <Button size="lg" variant="outline" className="border-3 border-white/95 text-white hover:bg-white/20 hover:border-white hover:scale-110 text-lg sm:text-xl px-12 py-8 backdrop-blur-xl transition-all duration-300 font-bold rounded-2xl bg-white/15 glass-effect">
-                  <Gift className="h-6 w-6 mr-2 inline animate-float" />
+              <Link href="/products?promo=true" className="w-full sm:w-auto">
+                <Button size="lg" variant="outline" className="w-full sm:w-auto border-2 sm:border-3 border-white/95 text-white hover:bg-white/20 hover:border-white hover:scale-105 sm:hover:scale-110 text-base sm:text-lg md:text-xl px-6 sm:px-8 md:px-12 py-6 sm:py-7 md:py-8 backdrop-blur-xl transition-all duration-300 font-bold rounded-xl sm:rounded-2xl bg-white/15 glass-effect">
+                  <Gift className="h-5 w-5 sm:h-6 sm:w-6 mr-2 inline animate-float" />
                   Акции и скидки
                 </Button>
               </Link>

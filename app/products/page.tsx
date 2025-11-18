@@ -136,7 +136,7 @@ export default function ProductsPage() {
             </div>
           </div>
         </Card>
-        <div className="flex gap-3 flex-wrap">
+        <div className="flex gap-2 sm:gap-3 flex-wrap">
           <Button
             variant={category === "" ? "default" : "outline"}
             onClick={(e) => {
@@ -144,7 +144,7 @@ export default function ProductsPage() {
               e.stopPropagation()
               setCategory("")
             }}
-            className={category === "" ? "btn-gradient rounded-xl px-6 py-6 h-auto font-bold shadow-xl" : "rounded-xl px-6 py-6 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold"}
+            className={category === "" ? "btn-gradient rounded-lg sm:rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 h-auto font-bold shadow-xl text-sm sm:text-base whitespace-nowrap min-h-[40px] sm:min-h-[44px]" : "rounded-lg sm:rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold text-sm sm:text-base whitespace-nowrap min-h-[40px] sm:min-h-[44px]"}
           >
             Все категории
           </Button>
@@ -157,7 +157,7 @@ export default function ProductsPage() {
                 e.stopPropagation()
                 setCategory(cat)
               }}
-              className={category === cat ? "btn-gradient rounded-xl px-6 py-6 h-auto font-bold shadow-xl" : "rounded-xl px-6 py-6 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold"}
+              className={category === cat ? "btn-gradient rounded-lg sm:rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 h-auto font-bold shadow-xl text-sm sm:text-base whitespace-nowrap min-h-[40px] sm:min-h-[44px]" : "rounded-lg sm:rounded-xl px-4 py-2 sm:px-5 sm:py-2.5 md:px-6 md:py-3 h-auto border-2 hover:border-blue-400 hover:bg-blue-50 transition-all duration-300 font-semibold text-sm sm:text-base whitespace-nowrap min-h-[40px] sm:min-h-[44px]"}
             >
               {cat}
             </Button>

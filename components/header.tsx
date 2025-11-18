@@ -61,16 +61,16 @@ export function Header() {
         <div className="flex items-center space-x-2 sm:space-x-3">
           {session && (
             <Link href="/wishlist" className="hidden sm:block">
-              <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600">
-                <Heart className="h-5 w-5" />
+              <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600 h-9 w-9 sm:h-10 sm:w-10">
+                <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
           )}
           <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600">
-              <ShoppingCart className="h-5 w-5" />
+            <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600 h-9 w-9 sm:h-10 sm:w-10">
+              <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-xs font-bold text-white flex items-center justify-center shadow-lg shadow-blue-500/50 animate-pulse">
+                <span className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-[10px] sm:text-xs font-bold text-white flex items-center justify-center shadow-lg shadow-blue-500/50 animate-pulse">
                   {cartItemsCount > 9 ? '9+' : cartItemsCount}
                 </span>
               )}
@@ -116,7 +116,7 @@ export function Header() {
           <Button
             variant="ghost"
             size="icon"
-            className="md:hidden"
+            className="md:hidden h-9 w-9 sm:h-10 sm:w-10"
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
           >
             {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}

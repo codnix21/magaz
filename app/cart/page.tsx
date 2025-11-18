@@ -196,18 +196,18 @@ export default function CartPage() {
                           })()} ₽
                         </p>
                       </div>
-                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 sm:gap-6">
-                        <div className="flex items-center gap-3 border-2 rounded-lg w-full sm:w-auto">
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 sm:gap-4">
+                        <div className="flex items-center gap-2 sm:gap-3 border-2 rounded-lg w-full sm:w-auto min-h-[44px]">
                           <Button
                             variant="ghost"
                             size="icon"
                             onClick={() => updateQuantity(item.id, item.quantity - 1)}
                             disabled={updating === item.id}
-                            className="h-10 w-10 hover:bg-blue-50"
+                            className="h-10 w-10 sm:h-11 sm:w-11 hover:bg-blue-50 text-lg sm:text-xl font-bold"
                           >
                             -
                           </Button>
-                          <span className="w-12 text-center font-semibold text-base sm:text-lg">
+                          <span className="w-12 sm:w-14 text-center font-semibold text-base sm:text-lg">
                             {item.quantity}
                           </span>
                           <Button
@@ -215,7 +215,7 @@ export default function CartPage() {
                             size="icon"
                             onClick={() => updateQuantity(item.id, item.quantity + 1)}
                             disabled={updating === item.id || item.quantity >= (item.variant?.stock || item.product.stock)}
-                            className="h-10 w-10 hover:bg-blue-50"
+                            className="h-10 w-10 sm:h-11 sm:w-11 hover:bg-blue-50 text-lg sm:text-xl font-bold"
                           >
                             +
                           </Button>
@@ -235,9 +235,9 @@ export default function CartPage() {
                           size="icon"
                           onClick={() => removeItem(item.id)}
                           disabled={updating === item.id}
-                          className="sm:ml-auto text-red-500 hover:text-red-600 hover:bg-red-50"
+                          className="sm:ml-auto text-red-500 hover:text-red-600 hover:bg-red-50 h-10 w-10 sm:h-11 sm:w-11"
                         >
-                          <Trash2 className="h-5 w-5" />
+                          <Trash2 className="h-5 w-5 sm:h-6 sm:w-6" />
                         </Button>
                       </div>
                     </div>
@@ -247,23 +247,23 @@ export default function CartPage() {
             ))}
           </div>
 
-          <Card className="h-fit sticky top-24 card-glass border-blue-300/60 animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-2xl glow-shadow">
-              <CardTitle className="text-white font-black text-2xl">Итого</CardTitle>
+          <Card className="h-fit lg:sticky lg:top-24 card-glass border-blue-300/60 animate-fade-in">
+            <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-2xl glow-shadow p-4 sm:p-6">
+              <CardTitle className="text-white font-black text-xl sm:text-2xl">Итого</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4 pt-6">
-              <div className="flex justify-between text-lg">
+            <CardContent className="space-y-4 pt-4 sm:pt-6 p-4 sm:p-6">
+              <div className="flex justify-between text-base sm:text-lg">
                 <span className="text-muted-foreground">Товаров:</span>
                 <span className="font-semibold">{cartItems.reduce((sum, item) => sum + item.quantity, 0)}</span>
               </div>
-              <div className="flex justify-between text-2xl font-bold pt-4 border-t">
+              <div className="flex justify-between text-xl sm:text-2xl font-bold pt-4 border-t">
                 <span>Сумма:</span>
                 <span className="text-blue-600">{total.toLocaleString("ru-RU")} ₽</span>
               </div>
               <Link href="/checkout" className="block pt-2">
-                <Button className="w-full btn-gradient font-bold rounded-xl text-lg py-7" size="lg">
+                <Button className="w-full btn-gradient font-bold rounded-xl text-base sm:text-lg py-5 sm:py-6 md:py-7" size="lg">
                   Оформить заказ
-                  <ArrowRight className="h-5 w-5 ml-2 group-hover:translate-x-1 transition-transform" />
+                  <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2 group-hover:translate-x-1 transition-transform" />
                 </Button>
               </Link>
             </CardContent>

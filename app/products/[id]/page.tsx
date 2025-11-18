@@ -222,12 +222,12 @@ export default function ProductPage() {
         </Button>
       </Link>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
         {/* Галерея изображений */}
-        <div className="space-y-4 animate-fade-in">
-          <div className="relative w-full h-[500px] rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-200/60 card-glass">
+        <div className="space-y-3 sm:space-y-4 animate-fade-in">
+          <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-200/60 card-glass">
             {hasDiscount && (
-              <div className="absolute top-4 left-4 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-4 py-2 rounded-full text-lg font-bold shadow-lg">
+              <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm sm:text-lg font-bold shadow-lg">
                 -{product.discountPercent}%
               </div>
             )}
@@ -250,12 +250,12 @@ export default function ProductPage() {
             )}
           </div>
           {product.images && product.images.length > 1 && (
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 sm:grid-cols-4 gap-2">
               {product.images.map((img, idx) => (
                 <button
                   key={img.id}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                  className={`relative h-16 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
                     selectedImageIndex === idx
                       ? 'border-blue-600 shadow-lg scale-105'
                       : 'border-gray-200 hover:border-blue-300'
@@ -275,9 +275,9 @@ export default function ProductPage() {
         </div>
 
         <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
-            <div className="flex items-start justify-between">
-              <CardTitle className="text-3xl sm:text-4xl font-black text-white">
+          <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
+            <div className="flex items-start justify-between gap-3">
+              <CardTitle className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight">
                 {product.name}
               </CardTitle>
               {session && (
@@ -293,15 +293,15 @@ export default function ProductPage() {
               )}
             </div>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4 sm:space-y-6 p-4 sm:p-6">
             <div>
-              <div className="flex items-baseline gap-3 mb-2">
+              <div className="flex items-baseline gap-2 sm:gap-3 mb-2 flex-wrap">
                 {hasDiscount && product.originalPrice && (
-                  <p className="text-xl text-muted-foreground line-through">
+                  <p className="text-base sm:text-lg md:text-xl text-muted-foreground line-through">
                     {product.originalPrice.toLocaleString("ru-RU")} ₽
                   </p>
                 )}
-                <p className="text-5xl font-black gradient-text animate-gradient">
+                <p className="text-3xl sm:text-4xl md:text-5xl font-black gradient-text animate-gradient">
                   {finalPrice.toLocaleString("ru-RU")} ₽
                 </p>
               </div>
@@ -316,10 +316,10 @@ export default function ProductPage() {
 
             {/* Варианты товара */}
             {Object.keys(variantGroups).length > 0 && (
-              <div className="space-y-4">
+              <div className="space-y-3 sm:space-y-4">
                 {Object.entries(variantGroups).map(([groupName, variants]) => (
                   <div key={groupName}>
-                    <h3 className="font-semibold mb-2">{groupName}:</h3>
+                    <h3 className="font-semibold mb-2 text-sm sm:text-base">{groupName}:</h3>
                     <div className="flex flex-wrap gap-2">
                       {variants.map((variant) => (
                         <button
@@ -329,7 +329,7 @@ export default function ProductPage() {
                             setQuantity(1)
                           }}
                           disabled={variant.stock === 0}
-                          className={`px-4 py-2 rounded-lg border-2 transition-all ${
+                          className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg border-2 transition-all text-sm sm:text-base min-h-[40px] sm:min-h-[44px] ${
                             selectedVariant?.id === variant.id
                               ? 'border-blue-600 bg-blue-50 text-blue-700 font-semibold shadow-md'
                               : variant.stock === 0
@@ -373,9 +373,9 @@ export default function ProductPage() {
             </div>
 
             {availableStock > 0 ? (
-              <div className="space-y-4">
-                <div className="flex items-center gap-4">
-                  <label className="font-semibold">Количество:</label>
+              <div className="space-y-3 sm:space-y-4">
+                <div className="flex items-center gap-3 sm:gap-4 flex-wrap">
+                  <label className="font-semibold text-sm sm:text-base">Количество:</label>
                   <Input
                     type="number"
                     min="1"
@@ -384,16 +384,16 @@ export default function ProductPage() {
                     onChange={(e) =>
                       setQuantity(Math.max(1, Math.min(availableStock, parseInt(e.target.value) || 1)))
                     }
-                    className="w-20"
+                    className="w-20 sm:w-24 h-10 sm:h-11 text-base"
                   />
                 </div>
                 <Button
                   onClick={handleAddToCart}
                   disabled={adding || !session}
-                  className="w-full btn-gradient font-bold rounded-xl text-lg py-7"
+                  className="w-full btn-gradient font-bold rounded-xl text-base sm:text-lg py-5 sm:py-7"
                   size="lg"
                 >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   {adding ? "Добавление..." : "Добавить в корзину"}
                 </Button>
                 {!session && (

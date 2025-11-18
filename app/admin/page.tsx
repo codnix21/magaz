@@ -249,44 +249,44 @@ export default function AdminPage() {
           <p className="text-base sm:text-lg text-muted-foreground font-medium">Управление товарами и заказами</p>
         </div>
 
-      <Tabs defaultValue="products" className="space-y-6">
-        <TabsList className="glass-effect border-2 border-blue-200/60 shadow-xl p-1.5 grid grid-cols-2 sm:grid-cols-5 gap-2 rounded-2xl">
-          <TabsTrigger value="products" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <Package className="h-4 w-4 mr-2" />
+      <Tabs defaultValue="products" className="space-y-4 sm:space-y-6">
+        <TabsList className="glass-effect border-2 border-blue-200/60 shadow-xl p-1 sm:p-1.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl">
+          <TabsTrigger value="products" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <Package className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Товары</span>
           </TabsTrigger>
-          <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <FileText className="h-4 w-4 mr-2" />
+          <TabsTrigger value="orders" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Заказы</span>
           </TabsTrigger>
-          <TabsTrigger value="import-export" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <Upload className="h-4 w-4 mr-2" />
+          <TabsTrigger value="import-export" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <Upload className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Импорт/Экспорт</span>
           </TabsTrigger>
-          <TabsTrigger value="reports" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <BarChart3 className="h-4 w-4 mr-2" />
+          <TabsTrigger value="reports" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <BarChart3 className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Отчёты</span>
           </TabsTrigger>
-          <TabsTrigger value="shipping" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <Truck className="h-4 w-4 mr-2" />
+          <TabsTrigger value="shipping" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <Truck className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Доставка</span>
           </TabsTrigger>
-          <TabsTrigger value="returns" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-xl font-semibold">
-            <RotateCcw className="h-4 w-4 mr-2" />
+          <TabsTrigger value="returns" className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-600 data-[state=active]:to-indigo-600 data-[state=active]:text-white data-[state=active]:shadow-lg rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm py-2 sm:py-2.5">
+            <RotateCcw className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
             <span className="hidden sm:inline">Возвраты</span>
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="products" className="space-y-6">
-          <div className="flex items-center justify-between mb-8 animate-fade-in">
-            <h2 className="text-3xl sm:text-4xl font-black gradient-text animate-gradient">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 sm:mb-8 animate-fade-in">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl font-black gradient-text animate-gradient">
               Все товары ({products.length})
             </h2>
             <Button
               onClick={handleAddClick}
-              className="btn-gradient rounded-2xl font-bold px-8 py-7 h-auto text-base shadow-2xl glow-shadow"
+              className="btn-gradient rounded-xl sm:rounded-2xl font-bold px-5 py-3 sm:px-8 sm:py-4 h-auto text-sm sm:text-base shadow-2xl glow-shadow w-full sm:w-auto"
             >
-              <Plus className="h-6 w-6 mr-2" />
+              <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
               Добавить товар
             </Button>
           </div>
@@ -464,15 +464,15 @@ export default function AdminPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsAddDialogOpen(false)}
-                    className="px-6 h-11 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                    className="px-4 sm:px-6 h-10 sm:h-11 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium text-sm sm:text-base"
                   >
                     Отмена
                   </Button>
                   <Button
                     type="submit"
-                    className="px-8 h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold"
+                    className="px-6 sm:px-8 h-10 sm:h-11 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 text-white shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-blue-500/40 transition-all duration-300 hover:scale-105 font-semibold text-sm sm:text-base"
                   >
-                    <Plus className="h-4 w-4 mr-2" />
+                    <Plus className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                     Создать товар
                   </Button>
                 </DialogFooter>
@@ -590,13 +590,13 @@ export default function AdminPage() {
                     type="button"
                     variant="outline"
                     onClick={() => setIsEditDialogOpen(false)}
-                    className="px-6 h-11 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium"
+                    className="px-4 sm:px-6 h-10 sm:h-11 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 font-medium text-sm sm:text-base"
                   >
                     Отмена
                   </Button>
                   <Button
                     type="submit"
-                    className="px-8 h-11 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 hover:scale-105 font-semibold"
+                    className="px-6 sm:px-8 h-10 sm:h-11 bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 hover:from-indigo-700 hover:via-purple-700 hover:to-pink-700 text-white shadow-xl shadow-indigo-500/30 hover:shadow-2xl hover:shadow-indigo-500/40 transition-all duration-300 hover:scale-105 font-semibold text-sm sm:text-base"
                   >
                     Сохранить изменения
                   </Button>
@@ -676,14 +676,14 @@ export default function AdminPage() {
                           <span className="text-muted-foreground">{order.shippingAddress}</span>
                         </p>
                       </div>
-                      <div className="flex items-center gap-3 pt-4 border-t">
-                        <Label className="font-semibold">Изменить статус:</Label>
+                      <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 pt-4 border-t">
+                        <Label className="font-semibold text-sm sm:text-base whitespace-nowrap">Изменить статус:</Label>
                         <select
                           value={order.status}
                           onChange={(e) =>
                             updateOrderStatus(order.id, e.target.value)
                           }
-                          className="flex-1 h-10 rounded-md border-2 border-blue-200 bg-background px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
+                          className="w-full sm:flex-1 h-10 rounded-md border-2 border-blue-200 bg-background px-3 py-2 text-sm focus:border-blue-500 focus:outline-none"
                         >
                           <option value="PENDING">Ожидает обработки</option>
                           <option value="PROCESSING">В обработке</option>
@@ -736,9 +736,9 @@ export default function AdminPage() {
                       alert("Ошибка при экспорте")
                     }
                   }}
-                  className="w-full btn-gradient rounded-xl font-semibold"
+                  className="w-full btn-gradient rounded-xl font-semibold min-h-[44px] text-sm sm:text-base px-4 sm:px-6 py-3 sm:py-4"
                 >
-                  <Download className="h-4 w-4 mr-2" />
+                  <Download className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                   Экспортировать в CSV
                 </Button>
               </CardContent>
@@ -785,7 +785,7 @@ export default function AdminPage() {
                       alert("Ошибка при импорте")
                     }
                   }}
-                  className="w-full mb-4"
+                  className="w-full mb-4 text-sm sm:text-base py-2 sm:py-3"
                 />
                 <p className="text-xs text-muted-foreground">
                   Формат CSV: Название, Описание, Цена, Категория, Остаток, Скидка %, Оригинальная цена, Изображение
@@ -943,8 +943,8 @@ export default function AdminPage() {
                     {reportData.daily && reportData.daily.length > 0 && (
                       <div>
                         <h3 className="text-lg font-bold mb-3">Продажи по дням</h3>
-                        <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
-                          <table className="w-full">
+                        <div className="border-2 border-blue-200 rounded-xl overflow-x-auto">
+                          <table className="w-full min-w-[600px]">
                             <thead className="gradient-bg-primary text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left font-bold text-sm">Дата</th>
@@ -1002,8 +1002,8 @@ export default function AdminPage() {
                     {reportData.topProducts && reportData.topProducts.length > 0 && (
                       <div>
                         <h3 className="text-lg font-bold mb-3">Топ продаваемых товаров</h3>
-                        <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
-                          <table className="w-full">
+                        <div className="border-2 border-blue-200 rounded-xl overflow-x-auto">
+                          <table className="w-full min-w-[700px]">
                             <thead className="gradient-bg-primary text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left font-bold text-sm">Товар</th>
@@ -1041,8 +1041,8 @@ export default function AdminPage() {
                     {reportData.lowStock && reportData.lowStock.length > 0 && (
                       <div>
                         <h3 className="text-lg font-bold mb-3">Товары с низким остатком</h3>
-                        <div className="border-2 border-orange-200 rounded-xl overflow-hidden">
-                          <table className="w-full">
+                        <div className="border-2 border-orange-200 rounded-xl overflow-x-auto">
+                          <table className="w-full min-w-[500px]">
                             <thead className="bg-orange-500 text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left font-bold text-sm">Товар</th>
@@ -1072,8 +1072,8 @@ export default function AdminPage() {
                     {reportData.categoryStats && reportData.categoryStats.length > 0 && (
                       <div>
                         <h3 className="text-lg font-bold mb-3">Статистика по категориям</h3>
-                        <div className="border-2 border-purple-200 rounded-xl overflow-hidden">
-                          <table className="w-full">
+                        <div className="border-2 border-purple-200 rounded-xl overflow-x-auto">
+                          <table className="w-full min-w-[500px]">
                             <thead className="bg-purple-500 text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left font-bold text-sm">Категория</th>
@@ -1129,8 +1129,8 @@ export default function AdminPage() {
                     {reportData.topCustomers && reportData.topCustomers.length > 0 && (
                       <div>
                         <h3 className="text-lg font-bold mb-3">Топ клиентов по сумме заказов</h3>
-                        <div className="border-2 border-blue-200 rounded-xl overflow-hidden">
-                          <table className="w-full">
+                        <div className="border-2 border-blue-200 rounded-xl overflow-x-auto">
+                          <table className="w-full min-w-[700px]">
                             <thead className="gradient-bg-primary text-white">
                               <tr>
                                 <th className="px-4 py-3 text-left font-bold text-sm">Клиент</th>
@@ -1201,8 +1201,8 @@ export default function AdminPage() {
                   </div>
                 )}
               </div>
-              <DialogFooter className="flex-shrink-0 px-6 pb-6 pt-4 border-t border-gray-200">
-                <Button onClick={() => setReportDialogOpen(false)} className="btn-gradient rounded-xl font-semibold">
+              <DialogFooter className="flex-shrink-0 px-4 sm:px-6 pb-4 sm:pb-6 pt-4 border-t border-gray-200">
+                <Button onClick={() => setReportDialogOpen(false)} className="btn-gradient rounded-xl font-semibold w-full sm:w-auto min-h-[44px] px-6 sm:px-8 text-sm sm:text-base">
                   Закрыть
                 </Button>
               </DialogFooter>

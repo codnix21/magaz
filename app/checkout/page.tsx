@@ -373,15 +373,15 @@ export default function CheckoutPage() {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           <Card className="card-glass border-blue-200/60 animate-fade-in">
-            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
-              <CardTitle className="text-xl font-black text-white flex items-center gap-3">
-                <div className="bg-white/20 backdrop-blur-md p-2 rounded-xl">
-                  <MapPin className="h-5 w-5 text-white" />
+            <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl font-black text-white flex items-center gap-2 sm:gap-3">
+                <div className="bg-white/20 backdrop-blur-md p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
+                  <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
                 Адрес доставки
               </CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-3 sm:space-y-4 p-4 sm:p-6">
               {/* Выбор существующего адреса */}
               {addresses.length > 0 && !showNewAddress && (
                 <div className="space-y-2">
@@ -449,9 +449,9 @@ export default function CheckoutPage() {
                       </Button>
                     )}
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
-                      <Label htmlFor="firstName">Имя *</Label>
+                      <Label htmlFor="firstName" className="text-sm sm:text-base">Имя *</Label>
                       <Input
                         id="firstName"
                         value={newAddress.firstName}
@@ -459,10 +459,11 @@ export default function CheckoutPage() {
                           setNewAddress({ ...newAddress, firstName: e.target.value })
                         }
                         required
+                        className="h-10 sm:h-11 text-sm sm:text-base"
                       />
                     </div>
                     <div>
-                      <Label htmlFor="lastName">Фамилия *</Label>
+                      <Label htmlFor="lastName" className="text-sm sm:text-base">Фамилия *</Label>
                       <Input
                         id="lastName"
                         value={newAddress.lastName}
@@ -470,6 +471,7 @@ export default function CheckoutPage() {
                           setNewAddress({ ...newAddress, lastName: e.target.value })
                         }
                         required
+                        className="h-10 sm:h-11 text-sm sm:text-base"
                       />
                     </div>
                   </div>
@@ -504,7 +506,7 @@ export default function CheckoutPage() {
                       }
                     />
                   </div>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div>
                       <Label htmlFor="city">Город *</Label>
                       <Input
@@ -666,9 +668,9 @@ export default function CheckoutPage() {
                       variant="ghost"
                       size="icon"
                       onClick={handleRemovePromoCode}
-                      className="h-8 w-8 text-green-600 hover:text-red-600"
+                      className="h-9 w-9 sm:h-10 sm:w-10 text-green-600 hover:text-red-600"
                     >
-                      <X className="h-4 w-4" />
+                      <X className="h-4 w-4 sm:h-5 sm:w-5" />
                     </Button>
                   </div>
                 ) : (
@@ -689,9 +691,9 @@ export default function CheckoutPage() {
                       type="button"
                       onClick={handleApplyPromoCode}
                       disabled={promoLoading || !promoCode.trim()}
-                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+                      className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 min-h-[44px] px-4 sm:px-6 text-sm sm:text-base"
                     >
-                      <Gift className="h-4 w-4 mr-2" />
+                      <Gift className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
                       Применить
                     </Button>
                   </div>
@@ -701,7 +703,7 @@ export default function CheckoutPage() {
               <div className="space-y-2 pt-4 border-t">
                 <Label htmlFor="payment">Способ оплаты</Label>
                 <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="radio"
                       id="online"
@@ -709,13 +711,13 @@ export default function CheckoutPage() {
                       value="online"
                       checked={paymentMethod === 'online'}
                       onChange={(e) => setPaymentMethod(e.target.value as 'online' | 'cash')}
-                      className="h-4 w-4 text-blue-600"
+                      className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 cursor-pointer"
                     />
-                    <Label htmlFor="online" className="font-normal cursor-pointer">
+                    <Label htmlFor="online" className="font-normal cursor-pointer text-sm sm:text-base">
                       Онлайн оплата (YooKassa)
                     </Label>
                   </div>
-                  <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-3">
                     <input
                       type="radio"
                       id="cash"
@@ -723,9 +725,9 @@ export default function CheckoutPage() {
                       value="cash"
                       checked={paymentMethod === 'cash'}
                       onChange={(e) => setPaymentMethod(e.target.value as 'online' | 'cash')}
-                      className="h-4 w-4 text-blue-600"
+                      className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600 cursor-pointer"
                     />
-                    <Label htmlFor="cash" className="font-normal cursor-pointer">
+                    <Label htmlFor="cash" className="font-normal cursor-pointer text-sm sm:text-base">
                       Оплата при получении
                     </Label>
                   </div>
@@ -740,10 +742,10 @@ export default function CheckoutPage() {
           </Card>
 
           <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="gradient-bg-primary text-white rounded-t-2xl shadow-xl">
-              <CardTitle className="text-xl font-black text-white">Ваш заказ</CardTitle>
+            <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
+              <CardTitle className="text-lg sm:text-xl font-black text-white">Ваш заказ</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-4">
+            <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="space-y-2">
                 {cartItems.map((item) => (
                   <div
@@ -780,7 +782,7 @@ export default function CheckoutPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full btn-gradient rounded-xl font-bold text-lg py-7"
+                className="w-full btn-gradient rounded-xl font-bold text-base sm:text-lg py-5 sm:py-6 md:py-7"
                 size="lg"
                 disabled={submitting || processingPayment}
               >
