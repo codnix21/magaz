@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { findUserAddresses, createAddress } from "@/lib/db-helpers"
 
+// Кешируем адреса на 30 секунд (могут часто меняться)
+export const revalidate = 30
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

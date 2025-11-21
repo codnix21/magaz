@@ -2,24 +2,24 @@ import Link from "next/link"
 
 export function Footer() {
   return (
-    <footer className="border-t border-gray-800 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 text-white mt-auto relative overflow-hidden animate-gradient">
+    <footer className="border-t border-gray-800 bg-gradient-to-br from-slate-900 via-emerald-950 via-cyan-950 to-blue-950 text-white mt-auto relative overflow-hidden animate-gradient">
       <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmYiIGZpbGwtb3BhY2l0eT0iMC4wNSI+PGNpcmNsZSBjeD0iMzAiIGN5PSIzMCIgcj0iMiIvPjwvZz48L2c+PC9zdmc+')] opacity-10 animate-pulse"></div>
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500"></div>
+      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-500"></div>
       <div className="container py-8 sm:py-12 px-4 sm:px-6 relative z-10">
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8 mb-6 sm:mb-8">
           <div>
-            <h3 className="font-bold text-xl mb-4 bg-gradient-to-r from-blue-400 to-indigo-400 bg-clip-text text-transparent">
+            <h3 className="font-bold text-lg sm:text-xl mb-3 sm:mb-4 bg-gradient-to-r from-emerald-400 via-cyan-400 to-blue-400 bg-clip-text text-transparent">
               Магазин
             </h3>
-            <p className="text-sm text-gray-300">
+            <p className="text-xs sm:text-sm text-gray-300">
               Лучшие товары по выгодным ценам. Качество и надежность на первом месте.
             </p>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 text-lg">Каталог</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">Каталог</h4>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-300">
               <li>
-                <Link href="/products" className="hover:text-blue-400 transition-colors">
+                <Link href="/products" className="hover:text-emerald-400 transition-colors">
                   Все товары
                 </Link>
               </li>
@@ -41,8 +41,8 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 text-lg">Информация</h4>
-            <ul className="space-y-2 text-sm text-gray-300">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">Информация</h4>
+            <ul className="space-y-1.5 sm:space-y-2 text-xs sm:text-sm text-gray-300">
               <li>
                 <Link href="/orders" className="hover:text-blue-400 transition-colors">
                   Мои заказы
@@ -61,15 +61,15 @@ export function Footer() {
             </ul>
           </div>
           <div>
-            <h4 className="font-semibold mb-4 text-lg">Контакты</h4>
-            <div className="text-sm text-gray-300 space-y-2">
+            <h4 className="font-semibold mb-3 sm:mb-4 text-base sm:text-lg">Контакты</h4>
+            <div className="text-xs sm:text-sm text-gray-300 space-y-1.5 sm:space-y-2">
               <div>
                 <span className="font-medium">Email: </span>
-                <a href="mailto:info@magazin.ru" className="hover:text-blue-400 transition-colors">info@magazin.ru</a>
+                <a href="mailto:info@magazin.ru" className="hover:text-emerald-400 transition-colors">info@magazin.ru</a>
               </div>
               <div>
                 <span className="font-medium">Телефон: </span>
-                <a href="tel:+79991234567" className="hover:text-blue-400 transition-colors">+7 (999) 123-45-67</a>
+                <a href="tel:+79991234567" className="hover:text-emerald-400 transition-colors">+7 (999) 123-45-67</a>
               </div>
             </div>
           </div>

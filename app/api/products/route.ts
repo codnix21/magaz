@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { findProducts, createProduct } from "@/lib/db-helpers"
 
-export const dynamic = 'force-dynamic'
+// Используем ISR (Incremental Static Regeneration) для кеширования
 export const revalidate = 60 // Кешируем на 60 секунд
 
 export async function GET(request: Request) {

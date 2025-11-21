@@ -8,7 +8,8 @@ import {
   findProductAttributes
 } from "@/lib/db-helpers"
 
-export const dynamic = 'force-dynamic'
+// Используем ISR для кеширования
+export const revalidate = 60
 
 export async function GET(
   request: Request,

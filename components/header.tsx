@@ -16,7 +16,7 @@ export function Header() {
     <header className="sticky top-0 z-50 w-full border-b glass-effect supports-[backdrop-filter]:bg-white/95 shadow-xl shadow-blue-500/10 border-b-blue-200/60 transition-all duration-500 hover:shadow-2xl hover:shadow-blue-500/20">
       <div className="container flex h-16 items-center justify-between px-4 sm:px-6">
         <Link href="/" className="flex items-center space-x-3 group">
-          <div className="bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-600 p-3 rounded-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl shadow-blue-500/40 glow-shadow animate-pulse-glow">
+          <div className="bg-gradient-to-br from-emerald-500 via-cyan-500 to-blue-600 p-3 rounded-2xl group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl shadow-emerald-500/40 glow-shadow-emerald animate-pulse-glow">
             <ShoppingCart className="h-6 w-6 text-white" />
           </div>
           <span className="text-2xl sm:text-3xl font-black gradient-text animate-gradient">
@@ -27,17 +27,17 @@ export function Header() {
         <nav className="hidden md:flex items-center space-x-6 lg:space-x-8">
           <Link
             href="/"
-            className="text-sm font-semibold transition-all duration-200 hover:text-blue-600 relative group px-2 py-1 rounded-md hover:bg-blue-50"
+            className="text-sm font-semibold transition-all duration-200 hover:text-emerald-600 relative group px-2 py-1 rounded-md hover:bg-emerald-50"
           >
             Главная
-            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           <Link
             href="/products"
-            className="text-sm font-semibold transition-all duration-200 hover:text-blue-600 relative group px-2 py-1 rounded-md hover:bg-blue-50"
+            className="text-sm font-semibold transition-all duration-200 hover:text-emerald-600 relative group px-2 py-1 rounded-md hover:bg-emerald-50"
           >
             Товары
-            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           <Link
             href="/products?promo=true"
@@ -45,7 +45,7 @@ export function Header() {
           >
             <Gift className="h-4 w-4 group-hover:scale-110 transition-transform" />
             Акции
-            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
+            <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 rounded-full scale-x-0 group-hover:scale-x-100 transition-transform duration-300"></span>
           </Link>
           {session?.user?.role === "ADMIN" && (
             <Link
@@ -61,16 +61,16 @@ export function Header() {
         <div className="flex items-center space-x-2 sm:space-x-3">
           {session && (
             <Link href="/wishlist" className="hidden sm:block">
-              <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600 h-9 w-9 sm:h-10 sm:w-10">
+              <Button variant="ghost" size="icon" className="relative hover:bg-emerald-50 hover:text-emerald-600 h-9 w-9 sm:h-10 sm:w-10">
                 <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               </Button>
             </Link>
           )}
           <Link href="/cart">
-            <Button variant="ghost" size="icon" className="relative hover:bg-blue-50 hover:text-blue-600 h-9 w-9 sm:h-10 sm:w-10">
+            <Button variant="ghost" size="icon" className="relative hover:bg-emerald-50 hover:text-emerald-600 h-9 w-9 sm:h-10 sm:w-10">
               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               {cartItemsCount > 0 && (
-                <span className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-[10px] sm:text-xs font-bold text-white flex items-center justify-center shadow-lg shadow-blue-500/50 animate-pulse">
+                <span className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 text-[10px] sm:text-xs font-bold text-white flex items-center justify-center shadow-lg shadow-emerald-500/50 animate-pulse">
                   {cartItemsCount > 9 ? '9+' : cartItemsCount}
                 </span>
               )}
@@ -82,7 +82,7 @@ export function Header() {
             {session ? (
               <>
                 <Link href="/profile">
-                  <Button variant="ghost" size="sm" className="hover:bg-blue-50 hover:text-blue-600">
+                  <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-600">
                     <User className="h-4 w-4 mr-2" />
                     <span className="hidden lg:inline">{session.user?.name || session.user?.email?.split('@')[0]}</span>
                   </Button>
@@ -99,12 +99,12 @@ export function Header() {
             ) : (
               <>
                 <Link href="/auth/signin">
-                  <Button variant="ghost" size="sm" className="hover:bg-blue-50 hover:text-blue-600">
+                  <Button variant="ghost" size="sm" className="hover:bg-emerald-50 hover:text-emerald-600">
                     Войти
                   </Button>
                 </Link>
                 <Link href="/auth/signup">
-                  <Button size="sm" className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white shadow-lg">
+                  <Button size="sm" className="bg-gradient-to-r from-emerald-500 via-cyan-500 to-blue-600 hover:from-emerald-600 hover:via-cyan-600 hover:to-blue-700 text-white shadow-lg">
                     Регистрация
                   </Button>
                 </Link>
@@ -130,14 +130,14 @@ export function Header() {
           <div className="container py-4 space-y-2">
             <Link
               href="/"
-              className="block px-4 py-2 text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+              className="block px-4 py-2 text-sm font-semibold hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Главная
             </Link>
             <Link
               href="/products"
-              className="block px-4 py-2 text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+              className="block px-4 py-2 text-sm font-semibold hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
               onClick={() => setMobileMenuOpen(false)}
             >
               Товары
@@ -163,7 +163,7 @@ export function Header() {
             {session?.user?.role === "ADMIN" && (
               <Link
                 href="/admin"
-                className="block px-4 py-2 text-sm font-semibold hover:bg-blue-50 hover:text-blue-600 rounded-lg transition-colors"
+                className="block px-4 py-2 text-sm font-semibold hover:bg-emerald-50 hover:text-emerald-600 rounded-lg transition-colors"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Админ-панель

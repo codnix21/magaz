@@ -1,0 +1,407 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Если DATABASE_URL не установлен, используем отдельные переменные
+// Формат: mysql://user:password@host:port/database
+
+model User {
+  id            String    @id
+  email         String    @unique
+  name          String?
+  password      String
+  role          String    @default("USER")
+  phone         String?
+  emailVerified Boolean   @default(false)
+  phoneVerified Boolean   @default(false)
+  oauthProvider String?
+  oauthId       String?
+  avatar        String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  addresses       Address[]
+  cartItems       CartItem[]
+  orders          Order[]
+  wishlist        Wishlist[]
+  reviews         Review[]
+  notifications   Notification[]
+  orderReturns    OrderReturn[]
+  tickets         Ticket[]
+  ticketMessages  TicketMessage[]
+  tokens          UserToken[]
+
+  @@map("User")
+}
+
+model Product {
+  id             String    @id
+  name           String
+  description    String    @db.Text
+  price          Float
+  image         String
+  category      String
+  stock         Int        @default(0)
+  discountPercent Int      @default(0)
+  originalPrice Float?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  cartItems         CartItem[]
+  orderItems        OrderItem[]
+  wishlist          Wishlist[]
+  reviews           Review[]
+  variants          ProductVariant[]
+  images            ProductImage[]
+  attributes        ProductAttribute[]
+  reservations      ProductReservation[]
+  productTags       ProductTag[]
+
+  @@map("Product")
+}
+
+model CartItem {
+  id        String   @id
+  userId    String
+  productId String
+  quantity  Int      @default(1)
+  variantId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation("CartItemVariant", fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("CartItem")
+}
+
+model Order {
+  id               String    @id
+  userId           String
+  total            Float
+  status           String    @default("PENDING")
+  shippingAddress  String    @db.Text
+  promoCodeId      String?
+  discountAmount   Float     @default(0)
+  subtotal         Float     @default(0)
+  shippingMethodId String?
+  shippingCost     Float     @default(0)
+  paymentMethod    String    @default("CASH")
+  comment          String?   @db.Text
+  addressId        String?
+  trackingNumber   String?
+  deliveryDate     DateTime?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  user          User              @relation(fields: [userId], references: [id], onDelete: Restrict)
+  shippingMethod ShippingMethod?   @relation(fields: [shippingMethodId], references: [id], onDelete: SetNull)
+  promoCode     PromoCode?        @relation(fields: [promoCodeId], references: [id], onDelete: SetNull)
+  orderItems    OrderItem[]
+  reservations  ProductReservation[]
+  returns       OrderReturn[]
+  tickets       Ticket[]
+
+  @@map("Order")
+}
+
+model OrderItem {
+  id         String   @id
+  orderId    String
+  productId  String
+  quantity   Int
+  price      Float
+  variantId  String?
+  variantName String?
+  createdAt  DateTime @default(now())
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Restrict)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
+  returnItems OrderReturnItem[]
+
+  @@map("OrderItem")
+}
+
+model PromoCode {
+  id                String    @id
+  code              String    @unique
+  description       String?   @db.Text
+  discountType      String    @default("PERCENTAGE")
+  discountValue     Float
+  minPurchaseAmount Float?    @default(0)
+  maxDiscountAmount Float?
+  usageLimit        Int?
+  usedCount         Int       @default(0)
+  validFrom         DateTime  @default(now())
+  validUntil        DateTime?
+  isActive          Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  orders Order[]
+
+  @@map("PromoCode")
+}
+
+model Wishlist {
+  id        String   @id
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, productId])
+  @@map("Wishlist")
+}
+
+model Review {
+  id        String   @id
+  userId    String
+  productId String
+  rating    Int
+  comment   String?  @db.Text
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("Review")
+}
+
+model ProductVariant {
+  id        String   @id
+  productId String
+  name      String
+  value     String
+  sku       String?
+  price     Float?
+  stock     Int      @default(0)
+  image     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
+  cartItems  CartItem[] @relation("CartItemVariant")
+  orderItems OrderItem[]
+  reservations ProductReservation[]
+
+  @@map("ProductVariant")
+}
+
+model ProductImage {
+  id        String   @id
+  productId String
+  url       String   @db.VarChar(500)
+  alt       String?
+  order     Int      @default(0)
+  isPrimary Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("ProductImage")
+}
+
+model ProductAttribute {
+  id        String   @id
+  productId String
+  name      String
+  value     String   @db.Text
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@map("ProductAttribute")
+}
+
+model Address {
+  id         String   @id
+  userId     String
+  type       String   @default("SHIPPING")
+  firstName  String
+  lastName   String
+  phone      String?
+  country    String   @default("Россия")
+  region     String?
+  city       String
+  postalCode String?
+  street     String
+  isDefault  Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Address")
+}
+
+model ShippingMethod {
+  id                  String    @id
+  name                String
+  description         String?   @db.Text
+  price               Float     @default(0)
+  freeShippingThreshold Float?
+  estimatedDays       Int?
+  isActive            Boolean   @default(true)
+  order               Int       @default(0)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  orders Order[]
+
+  @@map("ShippingMethod")
+}
+
+model ProductReservation {
+  id        String   @id
+  orderId   String?
+  productId String
+  variantId String?
+  quantity  Int
+  status    String   @default("PENDING")
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  order   Order?          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  variant ProductVariant? @relation(fields: [variantId], references: [id], onDelete: Cascade)
+
+  @@map("ProductReservation")
+}
+
+model Notification {
+  id        String   @id
+  userId    String
+  type      String
+  title     String
+  message   String   @db.Text
+  link      String?
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("Notification")
+}
+
+model OrderReturn {
+  id           String   @id
+  orderId      String
+  userId       String
+  reason       String   @db.Text
+  status       String   @default("PENDING")
+  refundAmount Float    @default(0)
+  refundStatus String   @default("PENDING")
+  adminComment String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  order       Order            @relation(fields: [orderId], references: [id], onDelete: Restrict)
+  user        User             @relation(fields: [userId], references: [id], onDelete: Restrict)
+  returnItems OrderReturnItem[]
+
+  @@map("OrderReturn")
+}
+
+model OrderReturnItem {
+  id         String   @id
+  returnId   String
+  orderItemId String
+  quantity   Int
+  reason     String?  @db.Text
+  createdAt  DateTime @default(now())
+
+  return    OrderReturn @relation(fields: [returnId], references: [id], onDelete: Cascade)
+  orderItem OrderItem   @relation(fields: [orderItemId], references: [id], onDelete: Restrict)
+
+  @@map("OrderReturnItem")
+}
+
+model Tag {
+  id          String   @id
+  name        String
+  slug        String   @unique
+  description String?   @db.Text
+  createdAt   DateTime @default(now())
+
+  productTags ProductTag[]
+
+  @@map("Tag")
+}
+
+model ProductTag {
+  id        String   @id
+  productId String
+  tagId     String
+  createdAt DateTime @default(now())
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, tagId])
+  @@map("ProductTag")
+}
+
+model Ticket {
+  id         String    @id
+  userId     String
+  orderId    String?
+  subject    String
+  status     String    @default("OPEN")
+  priority   String    @default("MEDIUM")
+  assignedTo String?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  closedAt   DateTime?
+
+  user    User            @relation(fields: [userId], references: [id], onDelete: Restrict)
+  order   Order?          @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  messages TicketMessage[]
+
+  @@map("Ticket")
+}
+
+model TicketMessage {
+  id         String   @id
+  ticketId   String
+  userId     String
+  message    String   @db.Text
+  isInternal Boolean  @default(false)
+  attachments Json?
+  createdAt  DateTime @default(now())
+
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@map("TicketMessage")
+}
+
+model UserToken {
+  id        String   @id
+  userId    String
+  token     String   @db.VarChar(500)
+  type      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("UserToken")
+}
+

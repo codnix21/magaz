@@ -13,6 +13,9 @@ import {
 } from "@/lib/db-helpers"
 import { sendOrderConfirmationEmail } from "@/lib/email"
 
+// Кешируем GET запросы на 30 секунд (POST остается динамическим)
+export const revalidate = 30
+
 export async function GET() {
   try {
     const session = await getServerSession(authOptions)

@@ -1,6 +1,9 @@
 import { NextResponse } from "next/server"
 import { findShippingMethods } from "@/lib/db-helpers"
 
+// Кешируем способы доставки на 5 минут (редко меняются)
+export const revalidate = 300
+
 export async function GET() {
   try {
     const methods = await findShippingMethods(true)

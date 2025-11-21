@@ -4,7 +4,7 @@ import GoogleProvider from "next-auth/providers/google"
 import type { JWT } from "next-auth/jwt"
 import type { User } from "next-auth"
 import { findUserByEmail, createUser, findUserById } from "./db-helpers"
-import pool from "./db"
+import { prisma } from "./prisma"
 import bcrypt from "bcryptjs"
 
 export const authOptions: NextAuthOptions = {
@@ -82,10 +82,14 @@ export const authOptions: NextAuthOptions = {
           } else {
             // Обновляем OAuth информацию для существующего пользователя
             if (account.providerAccountId) {
-              await pool.execute(
-                'UPDATE User SET oauthProvider = ?, oauthId = ?, emailVerified = true WHERE id = ?',
-                [account.provider, account.providerAccountId, dbUser.id]
-              )
+              await prisma.user.update({
+                where: { id: dbUser.id },
+                data: {
+                  oauthProvider: account.provider,
+                  oauthId: account.providerAccountId,
+                  emailVerified: true
+                }
+              })
             }
           }
           

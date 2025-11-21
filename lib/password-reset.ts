@@ -1,4 +1,4 @@
-import pool from './db'
+import { prisma } from './prisma'
 import crypto from 'crypto'
 
 export async function createPasswordResetToken(userId: string): Promise<string> {
@@ -7,32 +7,49 @@ export async function createPasswordResetToken(userId: string): Promise<string> 
   
   const id = `token_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO UserToken (id, userId, token, type, expiresAt) VALUES (?, ?, ?, ?, ?)',
-    [id, userId, token, 'PASSWORD_RESET', expiresAt]
-  )
+  await prisma.userToken.create({
+    data: {
+      id,
+      userId,
+      token,
+      type: 'PASSWORD_RESET',
+      expiresAt
+    }
+  })
   
   return token
 }
 
 export async function validatePasswordResetToken(token: string): Promise<string | null> {
-  const [rows] = await pool.execute(
-    'SELECT userId FROM UserToken WHERE token = ? AND type = "PASSWORD_RESET" AND expiresAt > NOW() AND used = false',
-    [token]
-  ) as any[]
+  const userToken = await prisma.userToken.findFirst({
+    where: {
+      token,
+      type: 'PASSWORD_RESET',
+      expiresAt: { gt: new Date() },
+      used: false
+    },
+    select: {
+      userId: true
+    }
+  })
   
-  if (rows.length === 0) {
+  if (!userToken) {
     return null
   }
   
-  return rows[0].userId
+  return userToken.userId
 }
 
 export async function usePasswordResetToken(token: string): Promise<void> {
-  await pool.execute(
-    'UPDATE UserToken SET used = true WHERE token = ? AND type = "PASSWORD_RESET"',
-    [token]
-  )
+  await prisma.userToken.updateMany({
+    where: {
+      token,
+      type: 'PASSWORD_RESET'
+    },
+    data: {
+      used: true
+    }
+  })
 }
 
 export async function sendPasswordResetEmail(email: string, name: string, token: string): Promise<void> {

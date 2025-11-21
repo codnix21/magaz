@@ -1,4 +1,4 @@
-import pool from '../lib/db'
+import prisma from '../lib/prisma'
 import bcrypt from 'bcryptjs'
 
 async function main() {
@@ -9,16 +9,20 @@ async function main() {
   const adminId = `admin_${Date.now()}`
   
   // Проверяем, существует ли уже пользователь
-  const [existingAdmin] = await pool.execute(
-    'SELECT * FROM User WHERE email = ?',
-    ['admin@example.com']
-  ) as any[]
+  const existingAdmin = await prisma.user.findUnique({
+    where: { email: 'admin@example.com' }
+  })
   
-  if (existingAdmin.length === 0) {
-    await pool.execute(
-      'INSERT INTO User (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
-      [adminId, 'admin@example.com', adminPassword, 'Администратор', 'ADMIN']
-    )
+  if (!existingAdmin) {
+    await prisma.user.create({
+      data: {
+        id: adminId,
+        email: 'admin@example.com',
+        password: adminPassword,
+        name: 'Администратор',
+        role: 'ADMIN'
+      }
+    })
     console.log('✅ Администратор создан: admin@example.com')
   } else {
     console.log('⏭️  Администратор уже существует')
@@ -28,25 +32,29 @@ async function main() {
   const userPassword = await bcrypt.hash('user123', 10)
   const userId = `user_${Date.now()}`
   
-  const [existingUser] = await pool.execute(
-    'SELECT * FROM User WHERE email = ?',
-    ['user@example.com']
-  ) as any[]
+  const existingUser = await prisma.user.findUnique({
+    where: { email: 'user@example.com' }
+  })
   
-  if (existingUser.length === 0) {
-    await pool.execute(
-      'INSERT INTO User (id, email, password, name, role) VALUES (?, ?, ?, ?, ?)',
-      [userId, 'user@example.com', userPassword, 'Тестовый пользователь', 'USER']
-    )
+  if (!existingUser) {
+    await prisma.user.create({
+      data: {
+        id: userId,
+        email: 'user@example.com',
+        password: userPassword,
+        name: 'Тестовый пользователь',
+        role: 'USER'
+      }
+    })
     console.log('✅ Пользователь создан: user@example.com')
   } else {
     console.log('⏭️  Пользователь уже существует')
   }
 
   // Проверяем, есть ли уже товары
-  const [existingProducts] = await pool.execute('SELECT COUNT(*) as count FROM Product') as any[]
+  const productCount = await prisma.product.count()
   
-  if (existingProducts[0].count === 0) {
+  if (productCount === 0) {
     const products = [
       {
         name: 'Смартфон iPhone 15',
@@ -117,10 +125,17 @@ async function main() {
     for (const product of products) {
       const productId = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
       try {
-        await pool.execute(
-          'INSERT INTO Product (id, name, description, price, image, category, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
-          [productId, product.name, product.description, product.price, product.image, product.category, product.stock]
-        )
+        await prisma.product.create({
+          data: {
+            id: productId,
+            name: product.name,
+            description: product.description,
+            price: product.price,
+            image: product.image,
+            category: product.category,
+            stock: product.stock
+          }
+        })
         console.log(`✅ Товар создан: ${product.name}`)
       } catch (error) {
         console.error(`❌ Ошибка при создании товара ${product.name}:`, error)
@@ -135,13 +150,13 @@ async function main() {
   console.log('Администратор: admin@example.com / admin123')
   console.log('Пользователь: user@example.com / user123')
   
-  await pool.end()
+  await prisma.$disconnect()
 }
 
 main()
   .catch(async (e) => {
     console.error('❌ Ошибка при заполнении базы данных:', e)
-    await pool.end()
+    await prisma.$disconnect()
     process.exit(1)
   })
 

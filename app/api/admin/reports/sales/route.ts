@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import pool from "@/lib/db"
+import { prisma } from "@/lib/prisma"
 
 export async function GET(request: Request) {
   try {
@@ -18,7 +18,21 @@ export async function GET(request: Request) {
     const startDate = searchParams.get("startDate")
     const endDate = searchParams.get("endDate")
 
-    let sql = `
+    // Формируем условия для WHERE
+    let whereClause = "status != 'CANCELLED'"
+    const params: any[] = []
+
+    if (startDate) {
+      whereClause += ' AND DATE(createdAt) >= ?'
+      params.push(startDate)
+    }
+    if (endDate) {
+      whereClause += ' AND DATE(createdAt) <= ?'
+      params.push(endDate)
+    }
+
+    // Ежедневная статистика
+    const dailySql = `
       SELECT 
         DATE(createdAt) as date,
         COUNT(*) as orderCount,
@@ -27,25 +41,23 @@ export async function GET(request: Request) {
         SUM(discountAmount) as totalDiscount,
         AVG(total) as avgOrderValue
       FROM \`Order\`
-      WHERE status != 'CANCELLED'
+      WHERE ${whereClause}
+      GROUP BY DATE(createdAt) 
+      ORDER BY date DESC 
+      LIMIT 30
     `
-    const params: any[] = []
 
-    if (startDate) {
-      sql += ' AND DATE(createdAt) >= ?'
-      params.push(startDate)
-    }
-    if (endDate) {
-      sql += ' AND DATE(createdAt) <= ?'
-      params.push(endDate)
-    }
-
-    sql += ' GROUP BY DATE(createdAt) ORDER BY date DESC LIMIT 30'
-
-    const [rows] = await pool.execute(sql, params) as any[]
+    const rows = await prisma.$queryRawUnsafe<Array<{
+      date: Date
+      orderCount: bigint
+      totalRevenue: number
+      totalSubtotal: number
+      totalDiscount: number
+      avgOrderValue: number
+    }>>(dailySql, ...params)
 
     // Общая статистика
-    const [stats] = await pool.execute(`
+    const statsSql = `
       SELECT 
         COUNT(*) as totalOrders,
         SUM(total) as totalRevenue,
@@ -53,14 +65,33 @@ export async function GET(request: Request) {
         SUM(discountAmount) as totalDiscount,
         AVG(total) as avgOrderValue
       FROM \`Order\`
-      WHERE status != 'CANCELLED'
-      ${startDate ? 'AND DATE(createdAt) >= ?' : ''}
-      ${endDate ? 'AND DATE(createdAt) <= ?' : ''}
-    `, params) as any[]
+      WHERE ${whereClause}
+    `
+
+    const stats = await prisma.$queryRawUnsafe<Array<{
+      totalOrders: bigint
+      totalRevenue: number
+      totalSubtotal: number
+      totalDiscount: number
+      avgOrderValue: number
+    }>>(statsSql, ...params)
 
     return NextResponse.json({
-      daily: rows,
-      summary: stats[0] || {
+      daily: rows.map(row => ({
+        date: row.date,
+        orderCount: Number(row.orderCount),
+        totalRevenue: Number(row.totalRevenue || 0),
+        totalSubtotal: Number(row.totalSubtotal || 0),
+        totalDiscount: Number(row.totalDiscount || 0),
+        avgOrderValue: Number(row.avgOrderValue || 0),
+      })),
+      summary: stats[0] ? {
+        totalOrders: Number(stats[0].totalOrders),
+        totalRevenue: Number(stats[0].totalRevenue || 0),
+        totalSubtotal: Number(stats[0].totalSubtotal || 0),
+        totalDiscount: Number(stats[0].totalDiscount || 0),
+        avgOrderValue: Number(stats[0].avgOrderValue || 0),
+      } : {
         totalOrders: 0,
         totalRevenue: 0,
         totalSubtotal: 0,

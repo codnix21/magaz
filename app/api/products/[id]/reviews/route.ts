@@ -3,7 +3,8 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { findReviewsByProductId, getProductRating, createReview, deleteReview } from "@/lib/db-helpers"
 
-export const dynamic = 'force-dynamic'
+// Используем ISR для кеширования отзывов
+export const revalidate = 30
 
 // Получить отзывы товара
 export async function GET(

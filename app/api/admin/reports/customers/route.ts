@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import pool from "@/lib/db"
+import { prisma } from "@/lib/prisma"
 
 export async function GET() {
   try {
@@ -15,13 +15,20 @@ export async function GET() {
     }
 
     // Топ клиентов по сумме заказов
-    const [topCustomers] = await pool.execute(`
+    const topCustomers = await prisma.$queryRawUnsafe<Array<{
+      id: string
+      email: string
+      name: string | null
+      orderCount: bigint
+      totalSpent: number
+      lastOrderDate: Date
+    }>>(`
       SELECT 
         u.id,
         u.email,
         u.name,
         COUNT(DISTINCT o.id) as orderCount,
-        SUM(o.total) as totalSpent,
+        COALESCE(SUM(o.total), 0) as totalSpent,
         MAX(o.createdAt) as lastOrderDate
       FROM User u
       INNER JOIN \`Order\` o ON u.id = o.userId
@@ -29,33 +36,46 @@ export async function GET() {
       GROUP BY u.id, u.email, u.name
       ORDER BY totalSpent DESC
       LIMIT 20
-    `) as any[]
+    `)
 
     // Новые клиенты (за последние 30 дней)
-    const [newCustomers] = await pool.execute(`
+    const newCustomers = await prisma.$queryRawUnsafe<Array<{
+      id: string
+      email: string
+      name: string | null
+      createdAt: Date
+      orderCount: bigint
+      totalSpent: number
+    }>>(`
       SELECT 
         u.id,
         u.email,
         u.name,
         u.createdAt,
         COUNT(DISTINCT o.id) as orderCount,
-        SUM(o.total) as totalSpent
+        COALESCE(SUM(o.total), 0) as totalSpent
       FROM User u
       LEFT JOIN \`Order\` o ON u.id = o.userId AND o.status != 'CANCELLED'
       WHERE u.createdAt >= DATE_SUB(NOW(), INTERVAL 30 DAY)
       GROUP BY u.id, u.email, u.name, u.createdAt
       ORDER BY u.createdAt DESC
       LIMIT 20
-    `) as any[]
+    `)
 
     // Общая статистика клиентов
-    const [customerStats] = await pool.execute(`
+    const customerStats = await prisma.$queryRawUnsafe<Array<{
+      totalCustomers: bigint
+      newCustomers30d: bigint
+      customersWithOrders: bigint
+      avgOrdersPerCustomer: number
+      avgSpentPerCustomer: number
+    }>>(`
       SELECT 
         COUNT(DISTINCT u.id) as totalCustomers,
         COUNT(DISTINCT CASE WHEN u.createdAt >= DATE_SUB(NOW(), INTERVAL 30 DAY) THEN u.id END) as newCustomers30d,
         COUNT(DISTINCT CASE WHEN o.id IS NOT NULL THEN u.id END) as customersWithOrders,
-        AVG(customerOrders.orderCount) as avgOrdersPerCustomer,
-        AVG(customerOrders.totalSpent) as avgSpentPerCustomer
+        COALESCE(AVG(customerOrders.orderCount), 0) as avgOrdersPerCustomer,
+        COALESCE(AVG(customerOrders.totalSpent), 0) as avgSpentPerCustomer
       FROM User u
       LEFT JOIN (
         SELECT 
@@ -67,12 +87,26 @@ export async function GET() {
         GROUP BY userId
       ) customerOrders ON u.id = customerOrders.userId
       LEFT JOIN \`Order\` o ON u.id = o.userId AND o.status != 'CANCELLED'
-    `) as any[]
+    `)
 
     return NextResponse.json({
-      topCustomers,
-      newCustomers,
-      stats: customerStats[0] || {
+      topCustomers: topCustomers.map(c => ({
+        ...c,
+        orderCount: Number(c.orderCount),
+        totalSpent: Number(c.totalSpent)
+      })),
+      newCustomers: newCustomers.map(c => ({
+        ...c,
+        orderCount: Number(c.orderCount),
+        totalSpent: Number(c.totalSpent)
+      })),
+      stats: customerStats[0] ? {
+        totalCustomers: Number(customerStats[0].totalCustomers),
+        newCustomers30d: Number(customerStats[0].newCustomers30d),
+        customersWithOrders: Number(customerStats[0].customersWithOrders),
+        avgOrdersPerCustomer: Number(customerStats[0].avgOrdersPerCustomer || 0),
+        avgSpentPerCustomer: Number(customerStats[0].avgSpentPerCustomer || 0),
+      } : {
         totalCustomers: 0,
         newCustomers30d: 0,
         customersWithOrders: 0,

@@ -1,4 +1,4 @@
-import pool from './db'
+import { prisma } from './prisma'
 
 // Типы для таблиц (из Prisma schema)
 export interface User {
@@ -199,19 +199,15 @@ export interface Tag {
 
 // Вспомогательные функции для работы с БД
 export async function findUserByEmail(email: string): Promise<User | null> {
-  const [rows] = await pool.execute(
-    'SELECT * FROM User WHERE email = ?',
-    [email]
-  ) as any[]
-  return rows[0] || null
+  return await prisma.user.findUnique({
+    where: { email }
+  }) as User | null
 }
 
 export async function findUserById(id: string): Promise<User | null> {
-  const [rows] = await pool.execute(
-    'SELECT * FROM User WHERE id = ?',
-    [id]
-  ) as any[]
-  return rows[0] || null
+  return await prisma.user.findUnique({
+    where: { id }
+  }) as User | null
 }
 
 export async function createUser(data: {
@@ -223,26 +219,18 @@ export async function createUser(data: {
   oauthId?: string | null
 }): Promise<User> {
   const id = `user_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  await pool.execute(
-    'INSERT INTO User (id, email, password, name, role, oauthProvider, oauthId, emailVerified) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [
-      id, 
-      data.email, 
-      data.password, 
-      data.name || null, 
-      data.role || 'USER',
-      data.oauthProvider || null,
-      data.oauthId || null,
-      data.oauthProvider ? true : false
-    ]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM User WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.user.create({
+    data: {
+      id,
+      email: data.email,
+      password: data.password,
+      name: data.name || null,
+      role: data.role || 'USER',
+      oauthProvider: data.oauthProvider || null,
+      oauthId: data.oauthId || null,
+      emailVerified: data.oauthProvider ? true : false
+    }
+  }) as User
 }
 
 export async function findProducts(filters?: {
@@ -251,29 +239,26 @@ export async function findProducts(filters?: {
   limit?: number
 }): Promise<Product[]> {
   try {
-    let sql = 'SELECT * FROM Product WHERE 1=1'
-    const params: any[] = []
+    const where: any = {}
     
     if (filters?.category) {
-      sql += ' AND category = ?'
-      params.push(filters.category)
+      where.category = filters.category
     }
     
     if (filters?.search) {
-      sql += ' AND (name LIKE ? OR description LIKE ?)'
-      const searchTerm = `%${filters.search}%`
-      params.push(searchTerm, searchTerm)
+      where.OR = [
+        { name: { contains: filters.search } },
+        { description: { contains: filters.search } }
+      ]
     }
     
-    sql += ' ORDER BY createdAt DESC'
+    const products = await prisma.product.findMany({
+      where,
+      orderBy: { createdAt: 'desc' },
+      take: filters?.limit
+    })
     
-    if (filters?.limit) {
-      // LIMIT не может быть параметром в MySQL, нужно вставлять число напрямую
-      sql += ` LIMIT ${parseInt(filters.limit.toString())}`
-    }
-    
-    const [rows] = await pool.execute(sql, params) as any[]
-    return rows
+    return products as Product[]
   } catch (error: any) {
     console.error('Database error in findProducts:', error)
     throw error
@@ -281,11 +266,9 @@ export async function findProducts(filters?: {
 }
 
 export async function findProductById(id: string): Promise<Product | null> {
-  const [rows] = await pool.execute(
-    'SELECT * FROM Product WHERE id = ?',
-    [id]
-  ) as any[]
-  return rows[0] || null
+  return await prisma.product.findUnique({
+    where: { id }
+  }) as Product | null
 }
 
 export async function createProduct(data: {
@@ -297,357 +280,241 @@ export async function createProduct(data: {
   stock: number
 }): Promise<Product> {
   const id = `prod_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-  await pool.execute(
-    'INSERT INTO Product (id, name, description, price, image, category, stock) VALUES (?, ?, ?, ?, ?, ?, ?)',
-    [id, data.name, data.description, data.price, data.image, data.category, data.stock]
-  )
-  
-  const product = await findProductById(id)
-  return product!
+  return await prisma.product.create({
+    data: {
+      id,
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      image: data.image,
+      category: data.category,
+      stock: data.stock
+    }
+  }) as Product
 }
 
 export async function updateProduct(id: string, data: Partial<Product>): Promise<Product> {
-  const updates: string[] = []
-  const params: any[] = []
+  const updateData: any = {}
   
-  if (data.name !== undefined) {
-    updates.push('name = ?')
-    params.push(data.name)
-  }
-  if (data.description !== undefined) {
-    updates.push('description = ?')
-    params.push(data.description)
-  }
-  if (data.price !== undefined) {
-    updates.push('price = ?')
-    params.push(data.price)
-  }
-  if (data.image !== undefined) {
-    updates.push('image = ?')
-    params.push(data.image)
-  }
-  if (data.category !== undefined) {
-    updates.push('category = ?')
-    params.push(data.category)
-  }
-  if (data.stock !== undefined) {
-    updates.push('stock = ?')
-    params.push(data.stock)
-  }
+  if (data.name !== undefined) updateData.name = data.name
+  if (data.description !== undefined) updateData.description = data.description
+  if (data.price !== undefined) updateData.price = data.price
+  if (data.image !== undefined) updateData.image = data.image
+  if (data.category !== undefined) updateData.category = data.category
+  if (data.stock !== undefined) updateData.stock = data.stock
+  if (data.discountPercent !== undefined) updateData.discountPercent = data.discountPercent
+  if (data.originalPrice !== undefined) updateData.originalPrice = data.originalPrice
   
-  if (updates.length > 0) {
-    const updateParams = [...params, id]
-    await pool.execute(
-      `UPDATE Product SET ${updates.join(', ')} WHERE id = ?`,
-      updateParams
-    )
-  }
-  
-  const product = await findProductById(id)
-  if (!product) {
-    throw new Error('Product not found')
-  }
-  return product
+  return await prisma.product.update({
+    where: { id },
+    data: updateData
+  }) as Product
 }
 
 export async function deleteProduct(id: string): Promise<void> {
-  await pool.execute('DELETE FROM Product WHERE id = ?', [id])
+  await prisma.product.delete({
+    where: { id }
+  })
 }
 
 export async function findCartItems(userId: string): Promise<CartItem[]> {
-  const [rows] = await pool.execute(
-    `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
-            p.image as p_image, p.category as p_category, p.stock as p_stock,
-            p.description as p_description, p.discountPercent, p.originalPrice,
-            p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
-            v.id as variant_id, v.name as variant_name, v.value as variant_value, 
-            v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
-            v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
-     FROM CartItem ci
-     JOIN Product p ON ci.productId = p.id
-     LEFT JOIN ProductVariant v ON ci.variantId = v.id
-     WHERE ci.userId = ?
-     ORDER BY ci.createdAt DESC`,
-    [userId]
-  ) as any[]
-  
-  // Преобразуем результат в нужный формат
-  return rows.map(row => ({
-    id: row.id,
-    userId: row.userId,
-    productId: row.productId,
-    quantity: row.quantity,
-    variantId: row.variantId,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    product: {
-      id: row.p_id,
-      name: row.p_name,
-      price: row.p_price,
-      image: row.p_image,
-      category: row.p_category,
-      stock: row.p_stock,
-      description: row.p_description,
-      discountPercent: row.discountPercent || 0,
-      originalPrice: row.originalPrice,
-      createdAt: row.p_createdAt,
-      updatedAt: row.p_updatedAt,
+  const items = await prisma.cartItem.findMany({
+    where: { userId },
+    include: {
+      product: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          price: true,
+          image: true,
+          category: true,
+          stock: true,
+          discountPercent: true,
+          originalPrice: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      },
+      variant: {
+        select: {
+          id: true,
+          productId: true,
+          name: true,
+          value: true,
+          price: true,
+          stock: true,
+          sku: true,
+          createdAt: true,
+          updatedAt: true,
+        }
+      }
     },
-    variant: row.variant_id ? {
-      id: row.variant_id,
-      productId: row.productId,
-      name: row.variant_name,
-      value: row.variant_value,
-      price: row.variant_price,
-      stock: row.variant_stock,
-      image: row.variant_image,
-      createdAt: row.variant_createdAt,
-      updatedAt: row.variant_updatedAt,
-    } : undefined,
-  }))
+    orderBy: { createdAt: 'desc' }
+  })
+  
+  return items.map(item => ({
+    id: item.id,
+    userId: item.userId,
+    productId: item.productId,
+    quantity: item.quantity,
+    variantId: item.variantId,
+    createdAt: item.createdAt,
+    updatedAt: item.updatedAt,
+    product: item.product as Product,
+    variant: item.variant as ProductVariant | undefined,
+  })) as CartItem[]
 }
 
 export async function addToCart(userId: string, productId: string, quantity: number = 1, variantId: string | null = null): Promise<CartItem> {
   // Проверяем, есть ли уже этот товар с таким же вариантом в корзине
-  const [existing] = await pool.execute(
-    'SELECT * FROM CartItem WHERE userId = ? AND productId = ? AND (variantId = ? OR (variantId IS NULL AND ? IS NULL))',
-    [userId, productId, variantId, variantId]
-  ) as any[]
-  
-  if (existing[0]) {
-    // Обновляем количество
-    await pool.execute(
-      'UPDATE CartItem SET quantity = quantity + ? WHERE id = ?',
-      [quantity, existing[0].id]
-    )
-    // Получаем обновленный элемент напрямую без вызова findCartItems
-    const [updated] = await pool.execute(
-      `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
-              p.image as p_image, p.category as p_category, p.stock as p_stock,
-              p.description as p_description, p.discountPercent, p.originalPrice,
-              p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
-              v.id as variant_id, v.name as variant_name, v.value as variant_value, 
-              v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
-              v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
-       FROM CartItem ci
-       JOIN Product p ON ci.productId = p.id
-       LEFT JOIN ProductVariant v ON ci.variantId = v.id
-       WHERE ci.id = ?`,
-      [existing[0].id]
-    ) as any[]
-    const row = updated[0]
-    return {
-      id: row.id,
-      userId: row.userId,
-      productId: row.productId,
-      quantity: row.quantity,
-      variantId: row.variantId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      product: {
-        id: row.p_id,
-        name: row.p_name,
-        price: row.p_price,
-        image: row.p_image,
-        category: row.p_category,
-        stock: row.p_stock,
-        description: row.p_description,
-        discountPercent: row.discountPercent || 0,
-        originalPrice: row.originalPrice,
-        createdAt: row.p_createdAt,
-        updatedAt: row.p_updatedAt,
-      },
-      variant: row.variant_id ? {
-        id: row.variant_id,
-        productId: row.productId,
-        name: row.variant_name,
-        value: row.variant_value,
-        price: row.variant_price,
-        stock: row.variant_stock,
-        image: row.variant_image,
-        createdAt: row.variant_createdAt,
-        updatedAt: row.variant_updatedAt,
-      } : undefined,
+  const existing = await prisma.cartItem.findFirst({
+    where: {
+      userId,
+      productId,
+      variantId: variantId || null
     }
+  })
+  
+  if (existing) {
+    // Обновляем количество
+    const updated = await prisma.cartItem.update({
+      where: { id: existing.id },
+      data: { quantity: existing.quantity + quantity },
+      include: {
+        product: true,
+        variant: true
+      }
+    })
+    
+    return {
+      id: updated.id,
+      userId: updated.userId,
+      productId: updated.productId,
+      quantity: updated.quantity,
+      variantId: updated.variantId,
+      createdAt: updated.createdAt,
+      updatedAt: updated.updatedAt,
+      product: updated.product as Product,
+      variant: updated.variant as ProductVariant | undefined,
+    } as CartItem
   } else {
     // Создаем новую запись
     const id = `cart_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    await pool.execute(
-      'INSERT INTO CartItem (id, userId, productId, quantity, variantId) VALUES (?, ?, ?, ?, ?)',
-      [id, userId, productId, quantity, variantId]
-    )
-    // Получаем новый элемент напрямую без вызова findCartItems
-    const [newItem] = await pool.execute(
-      `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
-              p.image as p_image, p.category as p_category, p.stock as p_stock,
-              p.description as p_description, p.discountPercent, p.originalPrice,
-              p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
-              v.id as variant_id, v.name as variant_name, v.value as variant_value, 
-              v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
-              v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
-       FROM CartItem ci
-       JOIN Product p ON ci.productId = p.id
-       LEFT JOIN ProductVariant v ON ci.variantId = v.id
-       WHERE ci.id = ?`,
-      [id]
-    ) as any[]
-    const row = newItem[0]
-    return {
-      id: row.id,
-      userId: row.userId,
-      productId: row.productId,
-      quantity: row.quantity,
-      variantId: row.variantId,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      product: {
-        id: row.p_id,
-        name: row.p_name,
-        price: row.p_price,
-        image: row.p_image,
-        category: row.p_category,
-        stock: row.p_stock,
-        description: row.p_description,
-        discountPercent: row.discountPercent || 0,
-        originalPrice: row.originalPrice,
-        createdAt: row.p_createdAt,
-        updatedAt: row.p_updatedAt,
+    const newItem = await prisma.cartItem.create({
+      data: {
+        id,
+        userId,
+        productId,
+        quantity,
+        variantId: variantId || null
       },
-      variant: row.variant_id ? {
-        id: row.variant_id,
-        productId: row.productId,
-        name: row.variant_name,
-        value: row.variant_value,
-        price: row.variant_price,
-        stock: row.variant_stock,
-        image: row.variant_image,
-        createdAt: row.variant_createdAt,
-        updatedAt: row.variant_updatedAt,
-      } : undefined,
-    }
+      include: {
+        product: true,
+        variant: true
+      }
+    })
+    
+    return {
+      id: newItem.id,
+      userId: newItem.userId,
+      productId: newItem.productId,
+      quantity: newItem.quantity,
+      variantId: newItem.variantId,
+      createdAt: newItem.createdAt,
+      updatedAt: newItem.updatedAt,
+      product: newItem.product as Product,
+      variant: newItem.variant as ProductVariant | undefined,
+    } as CartItem
   }
 }
 
 export async function updateCartItem(cartItemId: string, quantity: number): Promise<CartItem> {
-  await pool.execute(
-    'UPDATE CartItem SET quantity = ? WHERE id = ?',
-    [quantity, cartItemId]
-  )
+  const updated = await prisma.cartItem.update({
+    where: { id: cartItemId },
+    data: { quantity },
+    include: {
+      product: true,
+      variant: true
+    }
+  })
   
-  // Получаем обновленный элемент напрямую без вызова findCartItems
-  const [updated] = await pool.execute(
-    `SELECT ci.*, p.id as p_id, p.name as p_name, p.price as p_price, 
-            p.image as p_image, p.category as p_category, p.stock as p_stock,
-            p.description as p_description, p.discountPercent, p.originalPrice,
-            p.createdAt as p_createdAt, p.updatedAt as p_updatedAt,
-            v.id as variant_id, v.name as variant_name, v.value as variant_value, 
-            v.price as variant_price, v.stock as variant_stock, v.image as variant_image,
-            v.createdAt as variant_createdAt, v.updatedAt as variant_updatedAt
-     FROM CartItem ci
-     JOIN Product p ON ci.productId = p.id
-     LEFT JOIN ProductVariant v ON ci.variantId = v.id
-     WHERE ci.id = ?`,
-    [cartItemId]
-  ) as any[]
-  const row = updated[0]
   return {
-    id: row.id,
-    userId: row.userId,
-    productId: row.productId,
-    quantity: row.quantity,
-    variantId: row.variantId,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    product: {
-      id: row.p_id,
-      name: row.p_name,
-      price: row.p_price,
-      image: row.p_image,
-      category: row.p_category,
-      stock: row.p_stock,
-      description: row.p_description,
-      discountPercent: row.discountPercent || 0,
-      originalPrice: row.originalPrice,
-      createdAt: row.p_createdAt,
-      updatedAt: row.p_updatedAt,
-    },
-    variant: row.variant_id ? {
-      id: row.variant_id,
-      productId: row.productId,
-      name: row.variant_name,
-      value: row.variant_value,
-      price: row.variant_price,
-      stock: row.variant_stock,
-      image: row.variant_image,
-      createdAt: row.variant_createdAt,
-      updatedAt: row.variant_updatedAt,
-    } : undefined,
-  }
+    id: updated.id,
+    userId: updated.userId,
+    productId: updated.productId,
+    quantity: updated.quantity,
+    variantId: updated.variantId,
+    createdAt: updated.createdAt,
+    updatedAt: updated.updatedAt,
+    product: updated.product as Product,
+    variant: updated.variant as ProductVariant | undefined,
+  } as CartItem
 }
 
 export async function deleteCartItem(cartItemId: string): Promise<void> {
-  await pool.execute('DELETE FROM CartItem WHERE id = ?', [cartItemId])
+  await prisma.cartItem.delete({
+    where: { id: cartItemId }
+  })
 }
 
 export async function clearCart(userId: string): Promise<void> {
-  await pool.execute('DELETE FROM CartItem WHERE userId = ?', [userId])
+  await prisma.cartItem.deleteMany({
+    where: { userId }
+  })
 }
 
 export async function findOrders(userId?: string, admin: boolean = false): Promise<Order[]> {
-  let sql = `SELECT o.*, 
-                    u.email as 'user.email', u.name as 'user.name'
-             FROM \`Order\` o
-             JOIN User u ON o.userId = u.id
-             WHERE 1=1`
-  const params: any[] = []
+  const where: any = {}
   
   if (!admin && userId) {
-    sql += ' AND o.userId = ?'
-    params.push(userId)
+    where.userId = userId
   }
   
-  sql += ' ORDER BY o.createdAt DESC'
-  
-  const [rows] = await pool.execute(sql, params) as any[]
-  
-  if (rows.length === 0) {
-    return []
-  }
-  
-  // Получаем все orderItems одним запросом (убираем N+1 проблему)
-  const orderIds = rows.map((row: any) => row.id)
-  const [allItems] = await pool.execute(
-    `SELECT oi.*, p.name as 'product.name'
-     FROM OrderItem oi
-     JOIN Product p ON oi.productId = p.id
-     WHERE oi.orderId IN (${orderIds.map(() => '?').join(',')})
-     ORDER BY oi.orderId, oi.createdAt`,
-    orderIds
-  ) as any[]
-  
-  // Группируем items по orderId
-  const itemsByOrderId = new Map<string, any[]>()
-  for (const item of allItems) {
-    if (!itemsByOrderId.has(item.orderId)) {
-      itemsByOrderId.set(item.orderId, [])
-    }
-    itemsByOrderId.get(item.orderId)!.push(item)
-  }
-  
-  // Формируем результат
-  return rows.map((row: any) => ({
-    id: row.id,
-    userId: row.userId,
-    total: row.total,
-    status: row.status,
-    shippingAddress: row.shippingAddress,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-    user: {
-      email: row['user.email'],
-      name: row['user.name'],
+  const orders = await prisma.order.findMany({
+    where,
+    include: {
+      user: {
+        select: {
+          email: true,
+          name: true
+        }
+      },
+      orderItems: {
+        select: {
+          id: true,
+          orderId: true,
+          productId: true,
+          variantId: true,
+          quantity: true,
+          price: true,
+          product: {
+            select: {
+              id: true,
+              name: true,
+              image: true
+            }
+          }
+        }
+      }
     },
-    orderItems: (itemsByOrderId.get(row.id) || []).map((item: any) => ({
+    orderBy: { createdAt: 'desc' },
+    take: admin ? undefined : 100 // Ограничиваем для обычных пользователей
+  })
+  
+  return orders.map(order => ({
+    id: order.id,
+    userId: order.userId,
+    total: order.total,
+    status: order.status,
+    shippingAddress: order.shippingAddress,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
+    user: {
+      email: order.user.email,
+      name: order.user.name,
+    },
+    orderItems: order.orderItems.map(item => ({
       id: item.id,
       orderId: item.orderId,
       productId: item.productId,
@@ -657,7 +524,7 @@ export async function findOrders(userId?: string, admin: boolean = false): Promi
       variantName: item.variantName,
       createdAt: item.createdAt,
       product: {
-        name: item['product.name'],
+        name: item.product.name,
       },
     })),
   })) as any
@@ -677,134 +544,136 @@ export async function createOrder(data: {
   comment?: string | null
   paymentMethod?: string
 }): Promise<any> {
-  const connection = await pool.getConnection()
-  await connection.beginTransaction()
+  const subtotal = data.subtotal || data.total
+  const discountAmount = data.discountAmount || 0
+  const total = data.total
+  const shippingCost = data.shippingCost || 0
   
-  try {
-    const subtotal = data.subtotal || data.total
-    const discountAmount = data.discountAmount || 0
-    const total = data.total
-    const shippingCost = data.shippingCost || 0
-    
-    // Создаем заказ
+  // Создаем заказ с транзакцией
+  const order = await prisma.$transaction(async (tx) => {
     const orderId = `order_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    await connection.execute(
-      'INSERT INTO `Order` (id, userId, subtotal, discountAmount, total, shippingAddress, status, promoCodeId, addressId, shippingMethodId, shippingCost, comment, paymentMethod) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-      [
-        orderId, 
-        data.userId, 
-        subtotal, 
-        discountAmount, 
-        total, 
-        data.shippingAddress, 
-        'PENDING', 
-        data.promoCodeId || null,
-        data.addressId || null,
-        data.shippingMethodId || null,
-        shippingCost,
-        data.comment || null,
-        data.paymentMethod || 'CASH'
-      ]
-    )
     
-    // Увеличиваем счетчик использования промокода, если он был использован
-    if (data.promoCodeId) {
-      await connection.execute(
-        'UPDATE PromoCode SET usedCount = usedCount + 1 WHERE id = ?',
-        [data.promoCodeId]
-      )
-    }
-    
-    // Создаем элементы заказа
+    // Получаем названия вариантов для элементов заказа
+    const variantNames = new Map<string, string>()
     for (const item of data.cartItems) {
-      const itemId = `orderitem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-      
-      // Получаем название варианта, если есть
-      let variantName = null
       if (item.variantId) {
-        const [variantRows] = await connection.execute(
-          'SELECT name, value FROM ProductVariant WHERE id = ?',
-          [item.variantId]
-        ) as any[]
-        if (variantRows[0]) {
-          variantName = `${variantRows[0].name}: ${variantRows[0].value}`
+        const variant = await tx.productVariant.findUnique({
+          where: { id: item.variantId },
+          select: { name: true, value: true }
+        })
+        if (variant) {
+          variantNames.set(item.variantId, `${variant.name}: ${variant.value}`)
         }
       }
-      
-      await connection.execute(
-        'INSERT INTO OrderItem (id, orderId, productId, variantId, variantName, quantity, price) VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [itemId, orderId, item.productId, item.variantId || null, variantName, item.quantity, item.price]
-      )
+    }
+    
+    // Создаем заказ
+    const newOrder = await tx.order.create({
+      data: {
+        id: orderId,
+        userId: data.userId,
+        subtotal,
+        discountAmount,
+        total,
+        shippingAddress: data.shippingAddress,
+        status: 'PENDING',
+        promoCodeId: data.promoCodeId || null,
+        addressId: data.addressId || null,
+        shippingMethodId: data.shippingMethodId || null,
+        shippingCost,
+        comment: data.comment || null,
+        paymentMethod: data.paymentMethod || 'CASH',
+        orderItems: {
+          create: data.cartItems.map(item => ({
+            id: `orderitem_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+            productId: item.productId,
+            variantId: item.variantId || null,
+            variantName: item.variantId ? variantNames.get(item.variantId) || null : null,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        }
+      }
+    })
+    
+    // Увеличиваем счетчик использования промокода
+    if (data.promoCodeId) {
+      await tx.promoCode.update({
+        where: { id: data.promoCodeId },
+        data: {
+          usedCount: { increment: 1 }
+        }
+      })
     }
     
     // Очищаем корзину
-    await connection.execute('DELETE FROM CartItem WHERE userId = ?', [data.userId])
+    await tx.cartItem.deleteMany({
+      where: { userId: data.userId }
+    })
     
-    await connection.commit()
-    connection.release()
-    
-    // Получаем созданный заказ
-    const order = await findOrderById(orderId)
-    if (!order) {
-      throw new Error('Failed to retrieve created order')
-    }
-    return order
-  } catch (error) {
-    await connection.rollback()
-    connection.release()
-    throw error
-  }
+    return newOrder
+  })
+  
+  // Получаем созданный заказ с полной информацией
+  return await findOrderById(order.id)
 }
 
 export async function findOrderById(orderId: string, userId?: string): Promise<any | null> {
-  let sql = `SELECT o.*, 
-                    u.email as 'user.email', u.name as 'user.name'
-             FROM \`Order\` o
-             JOIN User u ON o.userId = u.id
-             WHERE o.id = ?`
-  const params: any[] = [orderId]
-  
+  const where: any = { id: orderId }
   if (userId) {
-    sql += ' AND o.userId = ?'
-    params.push(userId)
+    where.userId = userId
   }
   
-  const [rows] = await pool.execute(sql, params) as any[]
+  const order = await prisma.order.findFirst({
+    where,
+    include: {
+      user: {
+        select: {
+          email: true,
+          name: true
+        }
+      },
+      orderItems: {
+        include: {
+          product: {
+            select: {
+              id: true,
+              name: true,
+              image: true
+            }
+          },
+          variant: {
+            select: {
+              id: true,
+              name: true,
+              value: true
+            }
+          }
+        }
+      }
+    }
+  })
   
-  if (rows.length === 0) {
+  if (!order) {
     return null
   }
   
-  const row = rows[0]
-  
-  // Получаем orderItems с полной информацией о продуктах и вариантах
-  const [items] = await pool.execute(
-    `SELECT oi.*, 
-            p.id as p_id, p.name as p_name, p.image as p_image,
-            v.id as v_id, v.name as v_name, v.value as v_value
-     FROM OrderItem oi
-     JOIN Product p ON oi.productId = p.id
-     LEFT JOIN ProductVariant v ON oi.variantId = v.id
-     WHERE oi.orderId = ?`,
-    [orderId]
-  ) as any[]
-  
   return {
-    id: row.id,
-    userId: row.userId,
-    total: row.total,
-    status: row.status,
-    shippingAddress: row.shippingAddress,
-    shippingCost: row.shippingCost || 0,
-    paymentMethod: row.paymentMethod || 'cash',
-    comment: row.comment,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    id: order.id,
+    userId: order.userId,
+    total: order.total,
+    status: order.status,
+    shippingAddress: order.shippingAddress,
+    shippingCost: order.shippingCost || 0,
+    paymentMethod: order.paymentMethod || 'cash',
+    comment: order.comment,
+    createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
     user: {
-      email: row['user.email'],
-      name: row['user.name'],
+      email: order.user.email,
+      name: order.user.name,
     },
-    orderItems: items.map((item: any) => ({
+    orderItems: order.orderItems.map(item => ({
       id: item.id,
       orderId: item.orderId,
       productId: item.productId,
@@ -813,24 +682,24 @@ export async function findOrderById(orderId: string, userId?: string): Promise<a
       price: item.price,
       createdAt: item.createdAt,
       product: {
-        id: item.p_id,
-        name: item.p_name,
-        image: item.p_image,
+        id: item.product.id,
+        name: item.product.name,
+        image: item.product.image,
       },
-      variant: item.v_id ? {
-        id: item.v_id,
-        name: item.v_name,
-        value: item.v_value,
+      variant: item.variant ? {
+        id: item.variant.id,
+        name: item.variant.name,
+        value: item.variant.value,
       } : null,
     })),
   }
 }
 
 export async function updateOrderStatus(orderId: string, status: string): Promise<any> {
-  await pool.execute(
-    'UPDATE `Order` SET status = ? WHERE id = ?',
-    [status, orderId]
-  )
+  await prisma.order.update({
+    where: { id: orderId },
+    data: { status }
+  })
   
   const order = await findOrderById(orderId)
   return order!
@@ -857,14 +726,14 @@ export interface PromoCode {
 
 export async function findPromoCodeByCode(code: string): Promise<PromoCode | null> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM PromoCode WHERE code = ? AND isActive = true',
-      [code]
-    ) as any[]
+    const promo = await prisma.promoCode.findFirst({
+      where: {
+        code: code.toUpperCase(),
+        isActive: true
+      }
+    })
     
-    if (rows.length === 0) return null
-    
-    const promo = rows[0]
+    if (!promo) return null
     
     // Проверяем валидность по датам
     const now = new Date()
@@ -877,7 +746,7 @@ export async function findPromoCodeByCode(code: string): Promise<PromoCode | nul
     // Проверяем лимит использования
     if (promo.usageLimit !== null && promo.usedCount >= promo.usageLimit) return null
     
-    return promo
+    return promo as PromoCode
   } catch (error) {
     console.error('Database error in findPromoCodeByCode:', error)
     throw error
@@ -913,12 +782,11 @@ export async function calculateDiscount(promoCode: PromoCode, subtotal: number):
 
 export async function findPromoCodes(activeOnly: boolean = true): Promise<PromoCode[]> {
   try {
-    const sql = activeOnly 
-      ? 'SELECT * FROM PromoCode WHERE isActive = true ORDER BY createdAt DESC'
-      : 'SELECT * FROM PromoCode ORDER BY createdAt DESC'
-    
-    const [rows] = await pool.execute(sql) as any[]
-    return rows
+    const promoCodes = await prisma.promoCode.findMany({
+      where: activeOnly ? { isActive: true } : {},
+      orderBy: { createdAt: 'desc' }
+    })
+    return promoCodes as PromoCode[]
   } catch (error) {
     console.error('Database error in findPromoCodes:', error)
     throw error
@@ -938,28 +806,20 @@ export async function createPromoCode(data: {
 }): Promise<PromoCode> {
   const id = `promo_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO PromoCode (id, code, description, discountType, discountValue, minPurchaseAmount, maxDiscountAmount, usageLimit, validFrom, validUntil) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [
+  return await prisma.promoCode.create({
+    data: {
       id,
-      data.code.toUpperCase(),
-      data.description || null,
-      data.discountType,
-      data.discountValue,
-      data.minPurchaseAmount || null,
-      data.maxDiscountAmount || null,
-      data.usageLimit || null,
-      data.validFrom || new Date(),
-      data.validUntil || null,
-    ]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM PromoCode WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+      code: data.code.toUpperCase(),
+      description: data.description || null,
+      discountType: data.discountType,
+      discountValue: data.discountValue,
+      minPurchaseAmount: data.minPurchaseAmount || null,
+      maxDiscountAmount: data.maxDiscountAmount || null,
+      usageLimit: data.usageLimit || null,
+      validFrom: data.validFrom || new Date(),
+      validUntil: data.validUntil || null,
+    }
+  }) as PromoCode
 }
 
 // ==================== ИЗБРАННОЕ ====================
@@ -974,35 +834,21 @@ export interface WishlistItem {
 
 export async function findWishlistItems(userId: string): Promise<WishlistItem[]> {
   try {
-    const [rows] = await pool.execute(
-      `SELECT w.*, p.id as product_id, p.name, p.description, p.price, p.image, p.category, p.stock, 
-              p.discountPercent, p.originalPrice, p.createdAt as product_createdAt, p.updatedAt as product_updatedAt
-       FROM Wishlist w
-       INNER JOIN Product p ON w.productId = p.id
-       WHERE w.userId = ?
-       ORDER BY w.createdAt DESC`,
-      [userId]
-    ) as any[]
-    
-    return rows.map((row: any) => ({
-      id: row.id,
-      userId: row.userId,
-      productId: row.productId,
-      createdAt: row.createdAt,
-      product: {
-        id: row.product_id,
-        name: row.name,
-        description: row.description,
-        price: row.price,
-        image: row.image,
-        category: row.category,
-        stock: row.stock,
-        discountPercent: row.discountPercent || 0,
-        originalPrice: row.originalPrice,
-        createdAt: row.product_createdAt,
-        updatedAt: row.product_updatedAt,
+    const items = await prisma.wishlist.findMany({
+      where: { userId },
+      include: {
+        product: true
       },
-    }))
+      orderBy: { createdAt: 'desc' }
+    })
+    
+    return items.map(item => ({
+      id: item.id,
+      userId: item.userId,
+      productId: item.productId,
+      createdAt: item.createdAt,
+      product: item.product as Product,
+    })) as WishlistItem[]
   } catch (error) {
     console.error('Database error in findWishlistItems:', error)
     throw error
@@ -1012,28 +858,49 @@ export async function findWishlistItems(userId: string): Promise<WishlistItem[]>
 export async function addToWishlist(userId: string, productId: string): Promise<WishlistItem> {
   try {
     // Проверяем, не существует ли уже
-    const [existing] = await pool.execute(
-      'SELECT * FROM Wishlist WHERE userId = ? AND productId = ?',
-      [userId, productId]
-    ) as any[]
+    const existing = await prisma.wishlist.findUnique({
+      where: {
+        userId_productId: {
+          userId,
+          productId
+        }
+      }
+    })
     
-    if (existing.length > 0) {
-      return existing[0]
+    if (existing) {
+      const item = await prisma.wishlist.findUnique({
+        where: { id: existing.id },
+        include: { product: true }
+      })
+      return {
+        id: item!.id,
+        userId: item!.userId,
+        productId: item!.productId,
+        createdAt: item!.createdAt,
+        product: item!.product as Product,
+      } as WishlistItem
     }
     
     const id = `wish_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
     
-    await pool.execute(
-      'INSERT INTO Wishlist (id, userId, productId) VALUES (?, ?, ?)',
-      [id, userId, productId]
-    )
+    const newItem = await prisma.wishlist.create({
+      data: {
+        id,
+        userId,
+        productId
+      },
+      include: {
+        product: true
+      }
+    })
     
-    const [rows] = await pool.execute(
-      'SELECT * FROM Wishlist WHERE id = ?',
-      [id]
-    ) as any[]
-    
-    return rows[0]
+    return {
+      id: newItem.id,
+      userId: newItem.userId,
+      productId: newItem.productId,
+      createdAt: newItem.createdAt,
+      product: newItem.product as Product,
+    } as WishlistItem
   } catch (error) {
     console.error('Database error in addToWishlist:', error)
     throw error
@@ -1041,10 +908,12 @@ export async function addToWishlist(userId: string, productId: string): Promise<
 }
 
 export async function removeFromWishlist(userId: string, productId: string): Promise<void> {
-  await pool.execute(
-    'DELETE FROM Wishlist WHERE userId = ? AND productId = ?',
-    [userId, productId]
-  )
+  await prisma.wishlist.deleteMany({
+    where: {
+      userId,
+      productId
+    }
+  })
 }
 
 // Функция isInWishlist удалена как неиспользуемая (используется прямой запрос через API)
@@ -1068,29 +937,34 @@ export interface Review {
 
 export async function findReviewsByProductId(productId: string): Promise<Review[]> {
   try {
-    const [rows] = await pool.execute(
-      `SELECT r.*, u.name, u.email
-       FROM Review r
-       INNER JOIN User u ON r.userId = u.id
-       WHERE r.productId = ?
-       ORDER BY r.createdAt DESC`,
-      [productId]
-    ) as any[]
-    
-    return rows.map((row: any) => ({
-      id: row.id,
-      userId: row.userId,
-      productId: row.productId,
-      rating: row.rating,
-      comment: row.comment,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-      user: {
-        id: row.userId,
-        name: row.name,
-        email: row.email,
+    const reviews = await prisma.review.findMany({
+      where: { productId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
       },
-    }))
+      orderBy: { createdAt: 'desc' }
+    })
+    
+    return reviews.map(review => ({
+      id: review.id,
+      userId: review.userId,
+      productId: review.productId,
+      rating: review.rating,
+      comment: review.comment,
+      createdAt: review.createdAt,
+      updatedAt: review.updatedAt,
+      user: {
+        id: review.user.id,
+        name: review.user.name,
+        email: review.user.email,
+      },
+    })) as Review[]
   } catch (error) {
     console.error('Database error in findReviewsByProductId:', error)
     throw error
@@ -1099,14 +973,15 @@ export async function findReviewsByProductId(productId: string): Promise<Review[
 
 export async function getProductRating(productId: string): Promise<{ average: number; count: number }> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT AVG(rating) as average, COUNT(*) as count FROM Review WHERE productId = ?',
-      [productId]
-    ) as any[]
+    const result = await prisma.review.aggregate({
+      where: { productId },
+      _avg: { rating: true },
+      _count: { id: true }
+    })
     
     return {
-      average: rows[0]?.average ? parseFloat(rows[0].average.toFixed(2)) : 0,
-      count: rows[0]?.count || 0,
+      average: result._avg.rating ? parseFloat(result._avg.rating.toFixed(2)) : 0,
+      count: result._count.id || 0,
     }
   } catch (error) {
     console.error('Database error in getProductRating:', error)
@@ -1125,69 +1000,92 @@ export async function createReview(data: {
   }
   
   // Проверяем, не существует ли уже отзыв от этого пользователя
-  const [existing] = await pool.execute(
-    'SELECT * FROM Review WHERE userId = ? AND productId = ?',
-    [data.userId, data.productId]
-  ) as any[]
+  const existing = await prisma.review.findFirst({
+    where: {
+      userId: data.userId,
+      productId: data.productId
+    }
+  })
   
-  let id: string
+  let review
   
-  if (existing.length > 0) {
+  if (existing) {
     // Обновляем существующий отзыв
-    id = existing[0].id
-    await pool.execute(
-      'UPDATE Review SET rating = ?, comment = ?, updatedAt = NOW() WHERE id = ?',
-      [data.rating, data.comment || null, id]
-    )
+    review = await prisma.review.update({
+      where: { id: existing.id },
+      data: {
+        rating: data.rating,
+        comment: data.comment || null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    })
   } else {
     // Создаем новый отзыв
-    id = `review_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    await pool.execute(
-      'INSERT INTO Review (id, userId, productId, rating, comment) VALUES (?, ?, ?, ?, ?)',
-      [id, data.userId, data.productId, data.rating, data.comment || null]
-    )
+    const id = `review_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+    review = await prisma.review.create({
+      data: {
+        id,
+        userId: data.userId,
+        productId: data.productId,
+        rating: data.rating,
+        comment: data.comment || null
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true
+          }
+        }
+      }
+    })
   }
-  
-  const [rows] = await pool.execute(
-    `SELECT r.*, u.name, u.email
-     FROM Review r
-     INNER JOIN User u ON r.userId = u.id
-     WHERE r.id = ?`,
-    [id]
-  ) as any[]
   
   return {
-    id: rows[0].id,
-    userId: rows[0].userId,
-    productId: rows[0].productId,
-    rating: rows[0].rating,
-    comment: rows[0].comment,
-    createdAt: rows[0].createdAt,
-    updatedAt: rows[0].updatedAt,
+    id: review.id,
+    userId: review.userId,
+    productId: review.productId,
+    rating: review.rating,
+    comment: review.comment,
+    createdAt: review.createdAt,
+    updatedAt: review.updatedAt,
     user: {
-      id: rows[0].userId,
-      name: rows[0].name,
-      email: rows[0].email,
+      id: review.user.id,
+      name: review.user.name,
+      email: review.user.email,
     },
-  }
+  } as Review
 }
 
 export async function deleteReview(reviewId: string, userId: string): Promise<void> {
-  await pool.execute(
-    'DELETE FROM Review WHERE id = ? AND userId = ?',
-    [reviewId, userId]
-  )
+  await prisma.review.deleteMany({
+    where: {
+      id: reviewId,
+      userId: userId
+    }
+  })
 }
 
 // ==================== ВАРИАНТЫ ТОВАРОВ ====================
 
 export async function findProductVariants(productId: string): Promise<ProductVariant[]> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM ProductVariant WHERE productId = ? ORDER BY name, value',
-      [productId]
-    ) as any[]
-    return rows
+    return await prisma.productVariant.findMany({
+      where: { productId },
+      orderBy: [
+        { name: 'asc' },
+        { value: 'asc' }
+      ]
+    }) as ProductVariant[]
   } catch (error) {
     console.error('Database error in findProductVariants:', error)
     throw error
@@ -1196,11 +1094,9 @@ export async function findProductVariants(productId: string): Promise<ProductVar
 
 export async function findProductVariantById(variantId: string): Promise<ProductVariant | null> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM ProductVariant WHERE id = ?',
-      [variantId]
-    ) as any[]
-    return rows[0] || null
+    return await prisma.productVariant.findUnique({
+      where: { id: variantId }
+    }) as ProductVariant | null
   } catch (error) {
     console.error('Database error in findProductVariantById:', error)
     throw error
@@ -1218,28 +1114,31 @@ export async function createProductVariant(data: {
 }): Promise<ProductVariant> {
   const id = `variant_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO ProductVariant (id, productId, name, value, sku, price, stock, image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, data.productId, data.name, data.value, data.sku || null, data.price || null, data.stock, data.image || null]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM ProductVariant WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.productVariant.create({
+    data: {
+      id,
+      productId: data.productId,
+      name: data.name,
+      value: data.value,
+      sku: data.sku || null,
+      price: data.price || null,
+      stock: data.stock,
+      image: data.image || null
+    }
+  }) as ProductVariant
 }
 
 // ==================== ГАЛЕРЕЯ ИЗОБРАЖЕНИЙ ====================
 
 export async function findProductImages(productId: string): Promise<ProductImage[]> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM ProductImage WHERE productId = ? ORDER BY `order`, createdAt',
-      [productId]
-    ) as any[]
-    return rows
+    return await prisma.productImage.findMany({
+      where: { productId },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'asc' }
+      ]
+    }) as ProductImage[]
   } catch (error) {
     console.error('Database error in findProductImages:', error)
     throw error
@@ -1257,34 +1156,35 @@ export async function createProductImage(data: {
   
   // Если это первичное изображение, снимаем флаг с других
   if (data.isPrimary) {
-    await pool.execute(
-      'UPDATE ProductImage SET isPrimary = false WHERE productId = ?',
-      [data.productId]
-    )
+    await prisma.productImage.updateMany({
+      where: { productId: data.productId },
+      data: { isPrimary: false }
+    })
   }
   
-  await pool.execute(
-    'INSERT INTO ProductImage (id, productId, url, alt, `order`, isPrimary) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, data.productId, data.url, data.alt || null, data.order || 0, data.isPrimary || false]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM ProductImage WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.productImage.create({
+    data: {
+      id,
+      productId: data.productId,
+      url: data.url,
+      alt: data.alt || null,
+      order: data.order || 0,
+      isPrimary: data.isPrimary || false
+    }
+  }) as ProductImage
 }
 
 // ==================== АТРИБУТЫ ТОВАРА ====================
 
 export async function findProductAttributes(productId: string): Promise<ProductAttribute[]> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM ProductAttribute WHERE productId = ? ORDER BY `order`, createdAt',
-      [productId]
-    ) as any[]
-    return rows
+    return await prisma.productAttribute.findMany({
+      where: { productId },
+      orderBy: [
+        { order: 'asc' },
+        { createdAt: 'asc' }
+      ]
+    }) as ProductAttribute[]
   } catch (error) {
     console.error('Database error in findProductAttributes:', error)
     throw error
@@ -1299,28 +1199,28 @@ export async function createProductAttribute(data: {
 }): Promise<ProductAttribute> {
   const id = `attr_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO ProductAttribute (id, productId, name, value, `order`) VALUES (?, ?, ?, ?, ?)',
-    [id, data.productId, data.name, data.value, data.order || 0]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM ProductAttribute WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.productAttribute.create({
+    data: {
+      id,
+      productId: data.productId,
+      name: data.name,
+      value: data.value,
+      order: data.order || 0
+    }
+  }) as ProductAttribute
 }
 
 // ==================== АДРЕСНАЯ КНИГА ====================
 
 export async function findUserAddresses(userId: string): Promise<Address[]> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM Address WHERE userId = ? ORDER BY isDefault DESC, createdAt DESC',
-      [userId]
-    ) as any[]
-    return rows
+    return await prisma.address.findMany({
+      where: { userId },
+      orderBy: [
+        { isDefault: 'desc' },
+        { createdAt: 'desc' }
+      ]
+    }) as Address[]
   } catch (error) {
     console.error('Database error in findUserAddresses:', error)
     throw error
@@ -1329,11 +1229,12 @@ export async function findUserAddresses(userId: string): Promise<Address[]> {
 
 export async function findAddressById(addressId: string, userId: string): Promise<Address | null> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM Address WHERE id = ? AND userId = ?',
-      [addressId, userId]
-    ) as any[]
-    return rows[0] || null
+    return await prisma.address.findFirst({
+      where: {
+        id: addressId,
+        userId: userId
+      }
+    }) as Address | null
   } catch (error) {
     console.error('Database error in findAddressById:', error)
     throw error
@@ -1357,114 +1258,99 @@ export async function createAddress(data: {
   
   // Если это адрес по умолчанию, снимаем флаг с других адресов того же типа
   if (data.isDefault) {
-    await pool.execute(
-      'UPDATE Address SET isDefault = false WHERE userId = ? AND type = ?',
-      [data.userId, data.type]
-    )
+    await prisma.address.updateMany({
+      where: {
+        userId: data.userId,
+        type: data.type
+      },
+      data: { isDefault: false }
+    })
   }
   
-  await pool.execute(
-    'INSERT INTO Address (id, userId, type, firstName, lastName, phone, country, region, city, postalCode, street, isDefault) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-    [id, data.userId, data.type, data.firstName, data.lastName, data.phone || null, data.country, data.region || null, data.city, data.postalCode || null, data.street, data.isDefault || false]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM Address WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.address.create({
+    data: {
+      id,
+      userId: data.userId,
+      type: data.type,
+      firstName: data.firstName,
+      lastName: data.lastName,
+      phone: data.phone || null,
+      country: data.country,
+      region: data.region || null,
+      city: data.city,
+      postalCode: data.postalCode || null,
+      street: data.street,
+      isDefault: data.isDefault || false
+    }
+  }) as Address
 }
 
 export async function updateAddress(addressId: string, userId: string, data: Partial<Address>): Promise<Address> {
-  const updates: string[] = []
-  const values: any[] = []
+  const updateData: any = {}
   
-  if (data.firstName !== undefined) {
-    updates.push('firstName = ?')
-    values.push(data.firstName)
-  }
-  if (data.lastName !== undefined) {
-    updates.push('lastName = ?')
-    values.push(data.lastName)
-  }
-  if (data.phone !== undefined) {
-    updates.push('phone = ?')
-    values.push(data.phone)
-  }
-  if (data.country !== undefined) {
-    updates.push('country = ?')
-    values.push(data.country)
-  }
-  if (data.region !== undefined) {
-    updates.push('region = ?')
-    values.push(data.region)
-  }
-  if (data.city !== undefined) {
-    updates.push('city = ?')
-    values.push(data.city)
-  }
-  if (data.postalCode !== undefined) {
-    updates.push('postalCode = ?')
-    values.push(data.postalCode)
-  }
-  if (data.street !== undefined) {
-    updates.push('street = ?')
-    values.push(data.street)
-  }
+  if (data.firstName !== undefined) updateData.firstName = data.firstName
+  if (data.lastName !== undefined) updateData.lastName = data.lastName
+  if (data.phone !== undefined) updateData.phone = data.phone
+  if (data.country !== undefined) updateData.country = data.country
+  if (data.region !== undefined) updateData.region = data.region
+  if (data.city !== undefined) updateData.city = data.city
+  if (data.postalCode !== undefined) updateData.postalCode = data.postalCode
+  if (data.street !== undefined) updateData.street = data.street
+  
   if (data.isDefault !== undefined) {
     if (data.isDefault) {
       // Снимаем флаг с других адресов
-      const [current] = await pool.execute(
-        'SELECT type FROM Address WHERE id = ?',
-        [addressId]
-      ) as any[]
-      if (current[0]) {
-        await pool.execute(
-          'UPDATE Address SET isDefault = false WHERE userId = ? AND type = ? AND id != ?',
-          [userId, current[0].type, addressId]
-        )
+      const current = await prisma.address.findUnique({
+        where: { id: addressId },
+        select: { type: true }
+      })
+      if (current) {
+        await prisma.address.updateMany({
+          where: {
+            userId,
+            type: current.type,
+            id: { not: addressId }
+          },
+          data: { isDefault: false }
+        })
       }
     }
-    updates.push('isDefault = ?')
-    values.push(data.isDefault)
+    updateData.isDefault = data.isDefault
   }
   
-  if (updates.length === 0) {
+  if (Object.keys(updateData).length === 0) {
     throw new Error('No fields to update')
   }
   
-  values.push(addressId, userId)
-  await pool.execute(
-    `UPDATE Address SET ${updates.join(', ')} WHERE id = ? AND userId = ?`,
-    values
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM Address WHERE id = ?',
-    [addressId]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.address.update({
+    where: {
+      id: addressId,
+      userId: userId
+    },
+    data: updateData
+  }) as Address
 }
 
 export async function deleteAddress(addressId: string, userId: string): Promise<void> {
-  await pool.execute(
-    'DELETE FROM Address WHERE id = ? AND userId = ?',
-    [addressId, userId]
-  )
+  await prisma.address.deleteMany({
+    where: {
+      id: addressId,
+      userId: userId
+    }
+  })
 }
 
 // ==================== СПОСОБЫ ДОСТАВКИ ====================
 
 export async function findShippingMethods(activeOnly: boolean = true): Promise<ShippingMethod[]> {
   try {
-    const sql = activeOnly
-      ? 'SELECT * FROM ShippingMethod WHERE isActive = true ORDER BY `order`, name'
-      : 'SELECT * FROM ShippingMethod ORDER BY `order`, name'
-    
-    const [rows] = await pool.execute(sql) as any[]
-    return rows
+    return await prisma.shippingMethod.findMany({
+      where: activeOnly ? { isActive: true } : {},
+      orderBy: [
+        { order: 'asc' },
+        { name: 'asc' }
+      ]
+    }) as ShippingMethod[]
   } catch (error) {
     console.error('Database error in findShippingMethods:', error)
     throw error
@@ -1473,11 +1359,9 @@ export async function findShippingMethods(activeOnly: boolean = true): Promise<S
 
 export async function findShippingMethodById(id: string): Promise<ShippingMethod | null> {
   try {
-    const [rows] = await pool.execute(
-      'SELECT * FROM ShippingMethod WHERE id = ?',
-      [id]
-    ) as any[]
-    return rows[0] || null
+    return await prisma.shippingMethod.findUnique({
+      where: { id }
+    }) as ShippingMethod | null
   } catch (error) {
     console.error('Database error in findShippingMethodById:', error)
     throw error
@@ -1499,51 +1383,63 @@ export async function calculateShippingCost(methodId: string, orderTotal: number
 // ==================== РЕЗЕРВИРОВАНИЕ ТОВАРОВ ====================
 
 export async function reserveProducts(orderId: string, items: Array<{ productId: string; variantId?: string | null; quantity: number }>): Promise<ProductReservation[]> {
-  const reservations: ProductReservation[] = []
   const expiresAt = new Date(Date.now() + 30 * 60 * 1000) // 30 минут
   
-  for (const item of items) {
-    const id = `reserve_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-    
-    await pool.execute(
-      'INSERT INTO ProductReservation (id, orderId, productId, variantId, quantity, status, expiresAt) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [id, orderId, item.productId, item.variantId || null, item.quantity, 'PENDING', expiresAt]
-    )
-    
-    const [rows] = await pool.execute(
-      'SELECT * FROM ProductReservation WHERE id = ?',
-      [id]
-    ) as any[]
-    
-    reservations.push(rows[0])
-  }
+  const reservations = await Promise.all(
+    items.map(item => {
+      const id = `reserve_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+      return prisma.productReservation.create({
+        data: {
+          id,
+          orderId,
+          productId: item.productId,
+          variantId: item.variantId || null,
+          quantity: item.quantity,
+          status: 'PENDING',
+          expiresAt
+        }
+      })
+    })
+  )
   
-  return reservations
+  return reservations as ProductReservation[]
 }
 
 export async function confirmReservations(orderId: string): Promise<void> {
-  await pool.execute(
-    'UPDATE ProductReservation SET status = "CONFIRMED" WHERE orderId = ? AND status = "PENDING"',
-    [orderId]
-  )
+  // Обновляем статус резерваций
+  await prisma.productReservation.updateMany({
+    where: {
+      orderId,
+      status: 'PENDING'
+    },
+    data: {
+      status: 'CONFIRMED'
+    }
+  })
   
   // Списываем товары со склада
-  const [reservations] = await pool.execute(
-    'SELECT * FROM ProductReservation WHERE orderId = ? AND status = "CONFIRMED"',
-    [orderId]
-  ) as any[]
+  const reservations = await prisma.productReservation.findMany({
+    where: {
+      orderId,
+      status: 'CONFIRMED'
+    }
+  })
   
   for (const res of reservations) {
     if (res.variantId) {
-      await pool.execute(
-        'UPDATE ProductVariant SET stock = stock - ? WHERE id = ?',
-        [res.quantity, res.variantId]
-      )
+      await prisma.productVariant.update({
+        where: { id: res.variantId },
+        data: {
+          stock: { decrement: res.quantity }
+        }
+      })
     } else {
-      await pool.execute(
-        'UPDATE Product SET stock = stock - ? WHERE id = ?',
-        [res.quantity, res.productId]
-      )
+      await prisma.product.update({
+        where: { id: res.productId },
+        data: {
+          stock: { decrement: res.quantity }
+        }
+      })
     }
   }
 }
@@ -1561,27 +1457,27 @@ export async function createNotification(data: {
 }): Promise<Notification> {
   const id = `notif_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO Notification (id, userId, type, title, message, link) VALUES (?, ?, ?, ?, ?, ?)',
-    [id, data.userId, data.type, data.title, data.message, data.link || null]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM Notification WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.notification.create({
+    data: {
+      id,
+      userId: data.userId,
+      type: data.type,
+      title: data.title,
+      message: data.message,
+      link: data.link || null
+    }
+  }) as Notification
 }
 
 export async function findUserNotifications(userId: string, unreadOnly: boolean = false): Promise<Notification[]> {
   try {
-    const sql = unreadOnly
-      ? 'SELECT * FROM Notification WHERE userId = ? AND read = false ORDER BY createdAt DESC'
-      : 'SELECT * FROM Notification WHERE userId = ? ORDER BY createdAt DESC LIMIT 50'
-    
-    const [rows] = await pool.execute(sql, [userId]) as any[]
-    return rows
+    return await prisma.notification.findMany({
+      where: unreadOnly
+        ? { userId, read: false }
+        : { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    }) as Notification[]
   } catch (error) {
     console.error('Database error in findUserNotifications:', error)
     throw error
@@ -1589,17 +1485,23 @@ export async function findUserNotifications(userId: string, unreadOnly: boolean 
 }
 
 export async function markNotificationAsRead(notificationId: string, userId: string): Promise<void> {
-  await pool.execute(
-    'UPDATE Notification SET read = true WHERE id = ? AND userId = ?',
-    [notificationId, userId]
-  )
+  await prisma.notification.updateMany({
+    where: {
+      id: notificationId,
+      userId: userId
+    },
+    data: { read: true }
+  })
 }
 
 export async function markAllNotificationsAsRead(userId: string): Promise<void> {
-  await pool.execute(
-    'UPDATE Notification SET read = true WHERE userId = ? AND read = false',
-    [userId]
-  )
+  await prisma.notification.updateMany({
+    where: {
+      userId,
+      read: false
+    },
+    data: { read: true }
+  })
 }
 
 // Функция getUnreadNotificationCount удалена как неиспользуемая
@@ -1614,106 +1516,117 @@ export async function createOrderReturn(data: {
 }): Promise<OrderReturn> {
   const id = `return_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
   
-  await pool.execute(
-    'INSERT INTO OrderReturn (id, orderId, userId, reason, refundAmount, status, refundStatus) VALUES (?, ?, ?, ?, ?, "PENDING", "PENDING")',
-    [id, data.orderId, data.userId, data.reason || null, data.refundAmount]
-  )
-  
-  const [rows] = await pool.execute(
-    'SELECT * FROM OrderReturn WHERE id = ?',
-    [id]
-  ) as any[]
-  
-  return rows[0]
+  return await prisma.orderReturn.create({
+    data: {
+      id,
+      orderId: data.orderId,
+      userId: data.userId,
+      reason: data.reason || null,
+      refundAmount: data.refundAmount,
+      status: 'PENDING',
+      refundStatus: 'PENDING'
+    }
+  }) as OrderReturn
 }
 
 export async function findOrderReturns(userId?: string, admin: boolean = false): Promise<OrderReturn[]> {
-  let sql = `
-    SELECT r.*, 
-           o.id as order_id, o.total as order_total, o.status as order_status,
-           u.email as user_email, u.name as user_name
-    FROM OrderReturn r
-    JOIN \`Order\` o ON r.orderId = o.id
-    JOIN User u ON r.userId = u.id
-    WHERE 1=1
-  `
-  const params: any[] = []
+  const where: any = {}
   
   if (!admin && userId) {
-    sql += ' AND r.userId = ?'
-    params.push(userId)
+    where.userId = userId
   }
   
-  sql += ' ORDER BY r.createdAt DESC'
+  const returns = await prisma.orderReturn.findMany({
+    where,
+    include: {
+      order: {
+        select: {
+          id: true,
+          total: true,
+          status: true
+        }
+      },
+      user: {
+        select: {
+          email: true,
+          name: true
+        }
+      }
+    },
+    orderBy: { createdAt: 'desc' }
+  })
   
-  const [rows] = await pool.execute(sql, params) as any[]
-  
-  return rows.map(row => ({
-    id: row.id,
-    orderId: row.orderId,
-    userId: row.userId,
-    reason: row.reason,
-    status: row.status,
-    refundAmount: row.refundAmount,
-    refundStatus: row.refundStatus,
-    adminComment: row.adminComment,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+  return returns.map(ret => ({
+    id: ret.id,
+    orderId: ret.orderId,
+    userId: ret.userId,
+    reason: ret.reason,
+    status: ret.status,
+    refundAmount: ret.refundAmount,
+    refundStatus: ret.refundStatus,
+    adminComment: ret.adminComment,
+    createdAt: ret.createdAt,
+    updatedAt: ret.updatedAt,
     order: {
-      id: row.order_id,
-      total: row.order_total,
-      status: row.order_status,
+      id: ret.order.id,
+      total: ret.order.total,
+      status: ret.order.status,
     },
     user: {
-      email: row.user_email,
-      name: row.user_name,
+      email: ret.user.email,
+      name: ret.user.name,
     },
   })) as any[]
 }
 
 export async function findOrderReturnById(id: string, userId?: string): Promise<OrderReturn | null> {
-  let sql = `
-    SELECT r.*, 
-           o.id as order_id, o.total as order_total, o.status as order_status,
-           u.email as user_email, u.name as user_name
-    FROM OrderReturn r
-    JOIN \`Order\` o ON r.orderId = o.id
-    JOIN User u ON r.userId = u.id
-    WHERE r.id = ?
-  `
-  const params: any[] = [id]
-  
+  const where: any = { id }
   if (userId) {
-    sql += ' AND r.userId = ?'
-    params.push(userId)
+    where.userId = userId
   }
   
-  const [rows] = await pool.execute(sql, params) as any[]
+  const return_ = await prisma.orderReturn.findFirst({
+    where,
+    include: {
+      order: {
+        select: {
+          id: true,
+          total: true,
+          status: true
+        }
+      },
+      user: {
+        select: {
+          email: true,
+          name: true
+        }
+      }
+    }
+  })
   
-  if (rows.length === 0) {
+  if (!return_) {
     return null
   }
   
-  const row = rows[0]
   return {
-    id: row.id,
-    orderId: row.orderId,
-    userId: row.userId,
-    reason: row.reason,
-    status: row.status,
-    refundAmount: row.refundAmount,
-    refundStatus: row.refundStatus,
-    adminComment: row.adminComment,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
+    id: return_.id,
+    orderId: return_.orderId,
+    userId: return_.userId,
+    reason: return_.reason,
+    status: return_.status,
+    refundAmount: return_.refundAmount,
+    refundStatus: return_.refundStatus,
+    adminComment: return_.adminComment,
+    createdAt: return_.createdAt,
+    updatedAt: return_.updatedAt,
     order: {
-      id: row.order_id,
-      total: row.order_total,
-      status: row.order_status,
+      id: return_.order.id,
+      total: return_.order.total,
+      status: return_.order.status,
     },
     user: {
-      email: row.user_email,
-      name: row.user_name,
+      email: return_.user.email,
+      name: return_.user.name,
     },
   } as any
 }
@@ -1723,10 +1636,13 @@ export async function updateOrderReturnStatus(
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'PROCESSING' | 'COMPLETED',
   adminComment?: string | null
 ): Promise<OrderReturn> {
-  await pool.execute(
-    'UPDATE OrderReturn SET status = ?, adminComment = ? WHERE id = ?',
-    [status, adminComment || null, id]
-  )
+  await prisma.orderReturn.update({
+    where: { id },
+    data: {
+      status,
+      adminComment: adminComment || null
+    }
+  })
   
   const return_ = await findOrderReturnById(id)
   if (!return_) {
@@ -1740,10 +1656,10 @@ export async function updateOrderReturnRefundStatus(
   id: string,
   refundStatus: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED'
 ): Promise<OrderReturn> {
-  await pool.execute(
-    'UPDATE OrderReturn SET refundStatus = ? WHERE id = ?',
-    [refundStatus, id]
-  )
+  await prisma.orderReturn.update({
+    where: { id },
+    data: { refundStatus }
+  })
   
   const return_ = await findOrderReturnById(id)
   if (!return_) {

@@ -373,8 +373,8 @@ export default function CheckoutPage() {
       <form onSubmit={handleSubmit}>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
           <Card className="card-glass border-blue-200/60 animate-fade-in">
-            <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl font-black text-white flex items-center gap-2 sm:gap-3">
+            <CardHeader className="gradient-bg-primary text-white rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl shadow-xl p-4 sm:p-5 md:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl font-black text-white flex items-center gap-2 sm:gap-3">
                 <div className="bg-white/20 backdrop-blur-md p-1.5 sm:p-2 rounded-lg sm:rounded-xl">
                   <MapPin className="h-4 w-4 sm:h-5 sm:w-5 text-white" />
                 </div>
@@ -742,8 +742,8 @@ export default function CheckoutPage() {
           </Card>
 
           <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
-              <CardTitle className="text-lg sm:text-xl font-black text-white">Ваш заказ</CardTitle>
+            <CardHeader className="gradient-bg-primary text-white rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl shadow-xl p-4 sm:p-5 md:p-6">
+              <CardTitle className="text-base sm:text-lg md:text-xl font-black text-white">Ваш заказ</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 p-4 sm:p-6">
               <div className="space-y-2">
@@ -782,11 +782,12 @@ export default function CheckoutPage() {
               </div>
               <Button
                 type="submit"
-                className="w-full btn-gradient rounded-xl font-bold text-base sm:text-lg py-5 sm:py-6 md:py-7"
+                className="w-full btn-gradient rounded-lg sm:rounded-xl font-bold text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6 min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
                 size="lg"
                 disabled={submitting || processingPayment}
               >
-                {processingPayment ? "Создание платежа..." : submitting ? "Оформление..." : paymentMethod === 'online' ? "Оплатить заказ" : "Подтвердить заказ"}
+                <span className="hidden sm:inline">{processingPayment ? "Создание платежа..." : submitting ? "Оформление..." : paymentMethod === 'online' ? "Оплатить заказ" : "Подтвердить заказ"}</span>
+                <span className="sm:hidden">{processingPayment ? "Платеж..." : submitting ? "Оформление..." : paymentMethod === 'online' ? "Оплатить" : "Подтвердить"}</span>
               </Button>
             </CardContent>
           </Card>

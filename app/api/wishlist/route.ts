@@ -3,6 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { findWishlistItems, addToWishlist, removeFromWishlist } from "@/lib/db-helpers"
 
+// Кешируем избранное на 30 секунд
+export const revalidate = 30
+
 // Получить избранное пользователя
 export async function GET() {
   try {

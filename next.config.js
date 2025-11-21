@@ -19,6 +19,29 @@ const nextConfig = {
   ...(process.env.NODE_ENV === 'development' && {
     // Отключаем некоторые проверки для ускорения
     reactStrictMode: false,
+    // Ускоряем компиляцию в dev режиме
+    experimental: {
+      optimizePackageImports: [
+        'lucide-react', 
+        '@radix-ui/react-dialog', 
+        '@radix-ui/react-tabs',
+        '@radix-ui/react-label',
+        '@radix-ui/react-separator',
+        '@radix-ui/react-slot',
+        'next-auth',
+      ],
+      // Ускоряем компиляцию
+      turbo: {
+        rules: {
+          '*.svg': {
+            loaders: ['@svgr/webpack'],
+            as: '*.js',
+          },
+        },
+      },
+      // Ускоряем компиляцию страниц
+      serverComponentsExternalPackages: ['prisma'],
+    },
   }),
   // Ускоряем компиляцию
   swcMinify: true,
@@ -30,21 +53,28 @@ const nextConfig = {
   },
   // Исключаем системные файлы Windows из отслеживания
   webpack: (config, { isServer }) => {
-    if (!isServer) {
-      config.watchOptions = {
-        ...config.watchOptions,
-        ignored: [
-          '**/node_modules/**',
-          '**/.git/**',
-          '**/.next/**',
-          '**/pagefile.sys',
-          '**/hiberfil.sys',
-          '**/swapfile.sys',
-          '**/System Volume Information/**',
-          '**/Thumbs.db',
-          '**/Desktop.ini',
-        ],
-      }
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: [
+        '**/node_modules/**',
+        '**/.git/**',
+        '**/.next/**',
+        '**/pagefile.sys',
+        '**/hiberfil.sys',
+        '**/swapfile.sys',
+        '**/DumpStack.log.tmp',
+        '**/DumpStack.log',
+        '**/System Volume Information/**',
+        '**/Thumbs.db',
+        '**/Desktop.ini',
+        '**/RECYCLER/**',
+        '**/$Recycle.Bin/**',
+        '**/Windows/**',
+        '**/Program Files/**',
+        '**/ProgramData/**',
+      ],
+      aggregateTimeout: 300,
+      poll: false,
     }
     return config
   },

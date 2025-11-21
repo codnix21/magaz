@@ -216,7 +216,7 @@ export default function ProductPage() {
     <div className="min-h-screen bg-gradient-modern bg-mesh">
     <div className="container py-8 sm:py-12 px-4 sm:px-6">
       <Link href="/products" className="inline-block mb-6 animate-fade-in">
-        <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
+        <Button variant="ghost" className="rounded-xl hover:bg-emerald-50 hover:text-emerald-600 transition-all duration-300 font-semibold">
           <ArrowLeft className="h-5 w-5 mr-2" />
           Назад к товарам
         </Button>
@@ -225,7 +225,7 @@ export default function ProductPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-6 sm:mb-8">
         {/* Галерея изображений */}
         <div className="space-y-3 sm:space-y-4 animate-fade-in">
-          <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-blue-200/60 card-glass">
+          <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px] rounded-xl sm:rounded-2xl overflow-hidden shadow-2xl border-2 border-emerald-200/60 card-glass">
             {hasDiscount && (
               <div className="absolute top-3 left-3 sm:top-4 sm:left-4 z-10 bg-gradient-to-r from-red-500 to-pink-500 text-white px-3 py-1.5 sm:px-4 sm:py-2 rounded-full text-sm sm:text-lg font-bold shadow-lg">
                 -{product.discountPercent}%
@@ -255,10 +255,10 @@ export default function ProductPage() {
                 <button
                   key={img.id}
                   onClick={() => setSelectedImageIndex(idx)}
-                  className={`relative h-16 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                    className={`relative h-16 sm:h-20 rounded-lg overflow-hidden border-2 transition-all ${
                     selectedImageIndex === idx
-                      ? 'border-blue-600 shadow-lg scale-105'
-                      : 'border-gray-200 hover:border-blue-300'
+                      ? 'border-emerald-600 shadow-lg scale-105'
+                      : 'border-gray-200 hover:border-emerald-300'
                   }`}
                 >
                   <Image
@@ -274,10 +274,10 @@ export default function ProductPage() {
           )}
         </div>
 
-        <Card className="card-glass border-blue-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
-          <CardHeader className="gradient-bg-primary text-white rounded-t-xl sm:rounded-t-2xl shadow-xl p-4 sm:p-6">
-            <div className="flex items-start justify-between gap-3">
-              <CardTitle className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-black text-white leading-tight">
+        <Card className="card-glass border-emerald-200/60 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <CardHeader className="gradient-bg-primary text-white rounded-t-lg sm:rounded-t-xl md:rounded-t-2xl shadow-xl p-4 sm:p-5 md:p-6">
+            <div className="flex items-start justify-between gap-2 sm:gap-3">
+              <CardTitle className="text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-black text-white leading-tight pr-2">
                 {product.name}
               </CardTitle>
               {session && (
@@ -286,9 +286,9 @@ export default function ProductPage() {
                   size="icon"
                   onClick={handleToggleWishlist}
                   disabled={wishlistLoading}
-                  className={`hover:bg-red-50 ${isInWishlist ? 'text-red-500' : ''}`}
+                  className={`hover:bg-red-50/20 h-9 w-9 sm:h-10 sm:w-10 md:h-11 md:w-11 flex-shrink-0 ${isInWishlist ? 'text-red-200' : 'text-white'}`}
                 >
-                  <Heart className={`h-6 w-6 ${isInWishlist ? 'fill-red-500' : ''}`} />
+                  <Heart className={`h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6 ${isInWishlist ? 'fill-red-200' : ''}`} />
                 </Button>
               )}
             </div>
@@ -331,10 +331,10 @@ export default function ProductPage() {
                           disabled={variant.stock === 0}
                           className={`px-4 py-2 sm:px-5 sm:py-2.5 rounded-lg border-2 transition-all text-sm sm:text-base min-h-[40px] sm:min-h-[44px] ${
                             selectedVariant?.id === variant.id
-                              ? 'border-blue-600 bg-blue-50 text-blue-700 font-semibold shadow-md'
+                              ? 'border-emerald-600 bg-emerald-50 text-emerald-700 font-semibold shadow-md'
                               : variant.stock === 0
                               ? 'border-gray-200 text-gray-400 cursor-not-allowed'
-                              : 'border-gray-300 hover:border-blue-400 hover:bg-blue-50'
+                              : 'border-gray-300 hover:border-emerald-400 hover:bg-emerald-50'
                           }`}
                         >
                           {variant.value}
@@ -390,15 +390,16 @@ export default function ProductPage() {
                 <Button
                   onClick={handleAddToCart}
                   disabled={adding || !session}
-                  className="w-full btn-gradient font-bold rounded-xl text-base sm:text-lg py-5 sm:py-7"
+                  className="w-full btn-gradient font-bold rounded-lg sm:rounded-xl text-sm sm:text-base md:text-lg py-4 sm:py-5 md:py-6 min-h-[48px] sm:min-h-[52px] md:min-h-[56px]"
                   size="lg"
                 >
                   <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
-                  {adding ? "Добавление..." : "Добавить в корзину"}
+                  <span className="hidden sm:inline">{adding ? "Добавление..." : "Добавить в корзину"}</span>
+                  <span className="sm:hidden">{adding ? "..." : "В корзину"}</span>
                 </Button>
                 {!session && (
                   <p className="text-sm text-muted-foreground text-center">
-                    <Link href="/auth/signin" className="text-blue-600 hover:underline font-semibold">
+                    <Link href="/auth/signin" className="text-emerald-600 hover:underline font-semibold">
                       Войдите
                     </Link>
                     , чтобы добавить товар в корзину

@@ -1,61 +1,22 @@
-import mysql from 'mysql2/promise'
+import prisma from '../lib/prisma'
 
 async function testConnection() {
-  console.log('🔍 Тестирование подключения к MySQL...\n')
-  
-  // Парсим DATABASE_URL или используем переменные окружения
-  let config
-  if (process.env.DATABASE_URL) {
-    try {
-      const url = new URL(process.env.DATABASE_URL)
-      config = {
-        host: url.hostname,
-        port: parseInt(url.port) || 3306,
-        user: url.username,
-        password: url.password,
-        database: url.pathname.slice(1),
-      }
-    } catch (error) {
-      // Fallback to defaults
-      config = {
-        host: process.env.DB_HOST || 'codnix.ru',
-        port: parseInt(process.env.DB_PORT || '3306'),
-        user: process.env.DB_USER || 'mag',
-        password: process.env.DB_PASSWORD || 'Magazin1337',
-        database: process.env.DB_NAME || 'internet_magazin',
-      }
-    }
-  } else {
-    config = {
-      host: process.env.DB_HOST || 'codnix.ru',
-      port: parseInt(process.env.DB_PORT || '3306'),
-      user: process.env.DB_USER || 'mag',
-      password: process.env.DB_PASSWORD || 'Magazin1337',
-      database: process.env.DB_NAME || 'internet_magazin',
-    }
-  }
-
-  console.log('📋 Параметры подключения:')
-  console.log(`   Host: ${config.host}`)
-  console.log(`   Port: ${config.port}`)
-  console.log(`   User: ${config.user}`)
-  console.log(`   Database: ${config.database}`)
-  console.log(`   Password: ${config.password ? '***' : '(не указан)'}\n`)
-
-  let connection: mysql.Connection | null = null
+  console.log('🔍 Тестирование подключения к MySQL через Prisma...\n')
 
   try {
     console.log('⏳ Подключение к серверу...')
-    connection = await mysql.createConnection(config)
+    
+    // Тестируем подключение через простой запрос
+    await prisma.$queryRaw`SELECT 1 as test`
     console.log('✅ Подключение установлено!\n')
 
     console.log('⏳ Проверка базы данных...')
-    const [rows] = await connection.execute('SELECT DATABASE() as current_db')
-    console.log(`✅ Текущая база данных: ${(rows as any[])[0]?.current_db}\n`)
+    const dbName = await prisma.$queryRaw<Array<{ current_db: string }>>`SELECT DATABASE() as current_db`
+    console.log(`✅ Текущая база данных: ${dbName[0]?.current_db}\n`)
 
     console.log('⏳ Проверка таблиц...')
-    const [tables] = await connection.execute('SHOW TABLES')
-    const tableNames = (tables as any[]).map((t: any) => Object.values(t)[0])
+    const tables = await prisma.$queryRaw<Array<{ Tables_in_database: string }>>`SHOW TABLES`
+    const tableNames = tables.map(t => Object.values(t)[0])
     console.log(`✅ Найдено таблиц: ${tableNames.length}`)
     if (tableNames.length > 0) {
       console.log(`   Таблицы: ${tableNames.join(', ')}\n`)
@@ -63,42 +24,48 @@ async function testConnection() {
       console.log('   ⚠️  Таблицы не найдены. Запустите: npm run db:seed\n')
     }
 
+    // Проверка основных таблиц через Prisma
+    console.log('⏳ Проверка основных таблиц через Prisma...')
+    const userCount = await prisma.user.count()
+    const productCount = await prisma.product.count()
+    const orderCount = await prisma.order.count()
+    console.log(`   👥 Пользователи: ${userCount}`)
+    console.log(`   📦 Товары: ${productCount}`)
+    console.log(`   🛒 Заказы: ${orderCount}\n`)
+
     console.log('✅ Все проверки пройдены успешно!')
     console.log('🎉 Подключение к базе данных работает корректно.\n')
 
   } catch (error: any) {
     console.error('❌ Ошибка подключения:\n')
     
-    if (error.code === 'ER_ACCESS_DENIED_ERROR') {
+    if (error.code === 'P1000' || error.message?.includes('Authentication failed')) {
       console.error('🔴 ОШИБКА ДОСТУПА')
       console.error('   MySQL сервер отклоняет подключение.')
-      console.error('   Ваш IP адрес: ' + (error.sqlMessage?.match(/@'([^']+)'/)?.[1] || 'неизвестен'))
       console.error('\n📖 Решение:')
-      console.error('   1. Откройте файл: DATABASE_SETUP_GUIDE.md')
-      console.error('   2. Выполните SQL команды на сервере MySQL')
+      console.error('   1. Проверьте DATABASE_URL в .env')
+      console.error('   2. Убедитесь, что пользователь имеет права доступа')
       console.error('   3. Повторите проверку\n')
-    } else if (error.code === 'ECONNREFUSED') {
+    } else if (error.code === 'P1001' || error.message?.includes('Can\'t reach database server')) {
       console.error('🔴 ОШИБКА ПОДКЛЮЧЕНИЯ')
       console.error('   Не удалось подключиться к серверу.')
       console.error('   Проверьте:')
       console.error('   - Хост и порт правильные')
       console.error('   - Сервер MySQL запущен')
       console.error('   - Файрвол разрешает подключения на порт 3306\n')
-    } else if (error.code === 'ER_BAD_DB_ERROR') {
+    } else if (error.code === 'P1003' || error.message?.includes('database does not exist')) {
       console.error('🔴 ОШИБКА БАЗЫ ДАННЫХ')
       console.error('   База данных не существует.')
       console.error('   Создайте базу данных или проверьте имя в .env\n')
     } else {
-      console.error(`   Код ошибки: ${error.code}`)
+      console.error(`   Код ошибки: ${error.code || 'неизвестен'}`)
       console.error(`   Сообщение: ${error.message}\n`)
     }
 
     process.exit(1)
   } finally {
-    if (connection) {
-      await connection.end()
-      console.log('🔌 Соединение закрыто.')
-    }
+    await prisma.$disconnect()
+    console.log('🔌 Соединение закрыто.')
   }
 }
 

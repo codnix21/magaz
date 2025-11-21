@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { validatePasswordResetToken, usePasswordResetToken } from "@/lib/password-reset"
 import { findUserById } from "@/lib/db-helpers"
-import pool from "@/lib/db"
+import { prisma } from "@/lib/prisma"
 import bcrypt from "bcryptjs"
 
 export async function POST(request: Request) {
@@ -46,10 +46,10 @@ export async function POST(request: Request) {
     const hashedPassword = await bcrypt.hash(password, 10)
 
     // Обновляем пароль
-    await pool.execute(
-      'UPDATE User SET password = ? WHERE id = ?',
-      [hashedPassword, userId]
-    )
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword }
+    })
 
     // Помечаем токен как использованный
     await usePasswordResetToken(token)
