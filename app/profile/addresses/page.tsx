@@ -9,6 +9,13 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { ArrowLeft, Plus, Edit, Trash2, MapPin, Check } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 
 interface Address {
   id: string
@@ -31,6 +38,8 @@ export default function AddressesPage() {
   const [loading, setLoading] = useState(true)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [deleteId, setDeleteId] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -58,15 +67,21 @@ export default function AddressesPage() {
       if (response.ok) {
         const data = await response.json()
         setAddresses(data)
+        setError(null)
+      } else {
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Не удалось загрузить адреса")
       }
     } catch (error) {
       console.error("Error fetching addresses:", error)
+      setError("Не удалось загрузить адреса. Попробуйте позже.")
     } finally {
       setLoading(false)
     }
   }
 
   const handleEdit = (address: Address) => {
+    setError(null)
     setFormData({
       firstName: address.firstName,
       lastName: address.lastName,
@@ -84,20 +99,28 @@ export default function AddressesPage() {
   }
 
   const handleDelete = async (addressId: string) => {
-    if (!confirm("Вы уверены, что хотите удалить этот адрес?")) return
+    setDeleteId(addressId)
+  }
+
+  const confirmDelete = async () => {
+    if (!deleteId) return
 
     try {
-      const response = await fetch(`/api/addresses/${addressId}`, {
+      const response = await fetch(`/api/addresses/${deleteId}`, {
         method: "DELETE",
       })
       if (response.ok) {
         await fetchAddresses()
+        setError(null)
       } else {
-        alert("Ошибка при удалении адреса")
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Не удалось удалить адрес")
       }
     } catch (error) {
       console.error("Error deleting address:", error)
-      alert("Ошибка при удалении адреса")
+      setError("Не удалось удалить адрес. Попробуйте позже.")
+    } finally {
+      setDeleteId(null)
     }
   }
 
@@ -132,12 +155,14 @@ export default function AddressesPage() {
           type: "SHIPPING",
           isDefault: false,
         })
+        setError(null)
       } else {
-        alert("Ошибка при сохранении адреса")
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Не удалось сохранить адрес")
       }
     } catch (error) {
       console.error("Error saving address:", error)
-      alert("Ошибка при сохранении адреса")
+      setError("Не удалось сохранить адрес. Попробуйте позже.")
     }
   }
 
@@ -154,9 +179,14 @@ export default function AddressesPage() {
 
       if (response.ok) {
         await fetchAddresses()
+        setError(null)
+      } else {
+        const data = await response.json().catch(() => null)
+        setError(data?.error || "Не удалось обновить адрес по умолчанию")
       }
     } catch (error) {
       console.error("Error setting default address:", error)
+      setError("Не удалось обновить адрес по умолчанию. Попробуйте позже.")
     }
   }
 
@@ -175,7 +205,7 @@ export default function AddressesPage() {
   return (
     <div className="min-h-screen bg-gradient-modern bg-mesh">
       <div className="container py-8 sm:py-12 px-4 sm:px-6">
-        <div className="mb-8 sm:mb-12 animate-fade-in">
+        <div className="mb-8 sm:mb-6 animate-fade-in">
           <Link href="/profile" className="inline-block mb-6">
             <Button variant="ghost" className="rounded-xl hover:bg-blue-50 hover:text-blue-600 transition-all duration-300 font-semibold">
               <ArrowLeft className="h-5 w-5 mr-2" />
@@ -187,6 +217,16 @@ export default function AddressesPage() {
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">Управление адресами доставки</p>
         </div>
+
+        {error && (
+          <div className="mb-6 animate-fade-in">
+            <Card className="border-red-300 bg-red-50/80 text-red-800">
+              <CardContent className="py-3 text-sm">
+                {error}
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {!showForm ? (
           <>
@@ -435,6 +475,34 @@ export default function AddressesPage() {
             </CardContent>
           </Card>
         )}
+
+        <Dialog open={!!deleteId} onOpenChange={(open) => !open && setDeleteId(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Удалить адрес?</DialogTitle>
+            </DialogHeader>
+            <p className="text-sm text-muted-foreground">
+              Этот адрес будет удалён безвозвратно. Продолжить?
+            </p>
+            <DialogFooter className="mt-6">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDeleteId(null)}
+                className="rounded-xl"
+              >
+                Отмена
+              </Button>
+              <Button
+                type="button"
+                onClick={confirmDelete}
+                className="bg-red-600 hover:bg-red-700 rounded-xl"
+              >
+                Удалить
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   )

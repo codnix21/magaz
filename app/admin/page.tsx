@@ -55,6 +55,9 @@ export default function AdminPage() {
   const [reportData, setReportData] = useState<any>(null)
   const [reportType, setReportType] = useState<string>("")
   const [shippingMethods, setShippingMethods] = useState<any[]>([])
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
+  const [deleteProductId, setDeleteProductId] = useState<string | null>(null)
+  const [deleteProductName, setDeleteProductName] = useState<string | null>(null)
   const [formData, setFormData] = useState({
     name: "",
     description: "",
@@ -122,13 +125,14 @@ export default function AdminPage() {
       if (response.ok) {
         await fetchData()
         resetForm()
-        alert("Товар успешно создан!")
+        setMessage({ type: "success", text: "Товар успешно создан" })
       } else {
-        alert("Ошибка при создании товара")
+        const data = await response.json().catch(() => null)
+        setMessage({ type: "error", text: data?.error || "Ошибка при создании товара" })
       }
     } catch (error) {
       console.error("Error creating product:", error)
-      alert("Ошибка при создании товара")
+      setMessage({ type: "error", text: "Ошибка при создании товара" })
     }
   }
 
@@ -146,10 +150,6 @@ export default function AdminPage() {
   }
 
   const handleDelete = async (id: string) => {
-    if (!confirm("Вы уверены, что хотите удалить этот товар?")) {
-      return
-    }
-
     try {
       const response = await fetch(`/api/products/${id}`, {
         method: "DELETE",
@@ -157,13 +157,14 @@ export default function AdminPage() {
 
       if (response.ok) {
         await fetchData()
-        alert("Товар удалён")
+        setMessage({ type: "success", text: "Товар удалён" })
       } else {
-        alert("Ошибка при удалении товара")
+        const data = await response.json().catch(() => null)
+        setMessage({ type: "error", text: data?.error || "Ошибка при удалении товара" })
       }
     } catch (error) {
       console.error("Error deleting product:", error)
-      alert("Ошибка при удалении товара")
+      setMessage({ type: "error", text: "Ошибка при удалении товара" })
     }
   }
 
@@ -177,10 +178,11 @@ export default function AdminPage() {
 
       if (response.ok) {
         await fetchData()
-        alert("Статус заказа обновлён")
+        setMessage({ type: "success", text: "Статус заказа обновлён" })
       }
     } catch (error) {
       console.error("Error updating order:", error)
+      setMessage({ type: "error", text: "Ошибка при обновлении статуса заказа" })
     }
   }
 
@@ -217,13 +219,14 @@ export default function AdminPage() {
       if (response.ok) {
         await fetchData()
         resetForm()
-        alert("Товар обновлён")
+        setMessage({ type: "success", text: "Товар обновлён" })
       } else {
-        alert("Ошибка при обновлении товара")
+        const data = await response.json().catch(() => null)
+        setMessage({ type: "error", text: data?.error || "Ошибка при обновлении товара" })
       }
     } catch (error) {
       console.error("Error updating product:", error)
-      alert("Ошибка при обновлении товара")
+      setMessage({ type: "error", text: "Ошибка при обновлении товара" })
     }
   }
 
@@ -248,6 +251,31 @@ export default function AdminPage() {
           </h1>
           <p className="text-base sm:text-lg text-muted-foreground font-medium">Управление товарами и заказами</p>
         </div>
+
+        {message && (
+          <div className="mb-6 animate-fade-in">
+            <Card
+              className={
+                message.type === "success"
+                  ? "border-green-300 bg-green-50/80 text-green-800"
+                  : "border-red-300 bg-red-50/80 text-red-800"
+              }
+            >
+              <CardContent className="py-3 text-sm flex justify-between items-center">
+                <span>{message.text}</span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-7 w-7 text-current hover:bg-black/5"
+                  onClick={() => setMessage(null)}
+                  aria-label="Закрыть уведомление"
+                >
+                  ×
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
       <Tabs defaultValue="products" className="space-y-4 sm:space-y-6">
         <TabsList className="glass-effect border-2 border-blue-200/60 shadow-xl p-1 sm:p-1.5 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-1.5 sm:gap-2 rounded-xl sm:rounded-2xl">
@@ -337,7 +365,10 @@ export default function AdminPage() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleDelete(product.id)}
+                        onClick={() => {
+                          setDeleteProductId(product.id)
+                          setDeleteProductName(product.name)
+                        }}
                         className="hover:bg-gradient-to-r hover:from-red-50 hover:to-rose-50 hover:border-red-400 hover:text-red-700 transition-all duration-200"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -729,11 +760,11 @@ export default function AdminPage() {
                         a.click()
                         document.body.removeChild(a)
                         window.URL.revokeObjectURL(url)
-                        alert("Экспорт завершён")
+                        setMessage({ type: "success", text: "Экспорт завершён" })
                       }
                     } catch (error) {
                       console.error("Error exporting:", error)
-                      alert("Ошибка при экспорте")
+                      setMessage({ type: "error", text: "Ошибка при экспорте" })
                     }
                   }}
                   className="w-full btn-gradient rounded-xl font-semibold min-h-[44px] text-sm sm:text-base px-4 sm:px-6 py-3 sm:py-4"
@@ -775,14 +806,14 @@ export default function AdminPage() {
 
                       const data = await response.json()
                       if (response.ok) {
-                        alert(data.message)
+                        setMessage({ type: "success", text: data.message || "Импорт завершён" })
                         await fetchData()
                       } else {
-                        alert(data.error || "Ошибка при импорте")
+                        setMessage({ type: "error", text: data.error || "Ошибка при импорте" })
                       }
                     } catch (error) {
                       console.error("Error importing:", error)
-                      alert("Ошибка при импорте")
+                      setMessage({ type: "error", text: "Ошибка при импорте" })
                     }
                   }}
                   className="w-full mb-4 text-sm sm:text-base py-2 sm:py-3"
@@ -820,7 +851,7 @@ export default function AdminPage() {
                       }
                     } catch (error) {
                       console.error("Error fetching sales report:", error)
-                      alert("Ошибка при загрузке отчёта")
+                      setMessage({ type: "error", text: "Ошибка при загрузке отчёта по продажам" })
                     }
                   }}
                   className="w-full btn-gradient rounded-xl font-semibold"
@@ -853,7 +884,7 @@ export default function AdminPage() {
                       }
                     } catch (error) {
                       console.error("Error fetching products report:", error)
-                      alert("Ошибка при загрузке отчёта")
+                      setMessage({ type: "error", text: "Ошибка при загрузке отчёта по товарам" })
                     }
                   }}
                   className="w-full btn-gradient rounded-xl font-semibold"
@@ -886,7 +917,7 @@ export default function AdminPage() {
                       }
                     } catch (error) {
                       console.error("Error fetching customers report:", error)
-                      alert("Ошибка при загрузке отчёта")
+                      setMessage({ type: "error", text: "Ошибка при загрузке отчёта по клиентам" })
                     }
                   }}
                   className="w-full btn-gradient rounded-xl font-semibold"
@@ -1262,7 +1293,7 @@ export default function AdminPage() {
                     }
                   } catch (error) {
                     console.error("Error fetching shipping methods:", error)
-                    alert("Ошибка при загрузке способов доставки")
+                    setMessage({ type: "error", text: "Ошибка при загрузке способов доставки" })
                   }
                 }}
                 className="w-full mt-4 btn-gradient rounded-xl font-semibold"
@@ -1277,6 +1308,42 @@ export default function AdminPage() {
           <ReturnsTab />
         </TabsContent>
       </Tabs>
+
+      {/* Диалог подтверждения удаления товара */}
+      <Dialog open={!!deleteProductId} onOpenChange={(open) => !open && setDeleteProductId(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Удалить товар?</DialogTitle>
+            <DialogDescription>
+              {deleteProductName
+                ? `Товар «${deleteProductName}» будет удалён безвозвратно. Это действие нельзя отменить.`
+                : "Товар будет удалён безвозвратно. Это действие нельзя отменить."}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteProductId(null)}
+              className="rounded-xl"
+            >
+              Отмена
+            </Button>
+            <Button
+              type="button"
+              onClick={async () => {
+                if (!deleteProductId) return
+                const id = deleteProductId
+                setDeleteProductId(null)
+                await handleDelete(id)
+              }}
+              className="bg-red-600 hover:bg-red-700 rounded-xl"
+            >
+              Удалить
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       </div>
     </div>
   )
@@ -1285,6 +1352,7 @@ export default function AdminPage() {
 function ReturnsTab() {
   const [returns, setReturns] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null)
 
   useEffect(() => {
     fetchReturns()
@@ -1314,11 +1382,11 @@ function ReturnsTab() {
 
       if (response.ok) {
         await fetchReturns()
-        alert("Статус возврата обновлён")
+        setMessage({ type: "success", text: "Статус возврата обновлён" })
       }
     } catch (error) {
       console.error("Error updating return:", error)
-      alert("Ошибка при обновлении статуса")
+      setMessage({ type: "error", text: "Ошибка при обновлении статуса возврата" })
     }
   }
 
@@ -1336,6 +1404,30 @@ function ReturnsTab() {
 
   return (
     <div className="animate-fade-in">
+      {message && (
+        <div className="mb-4">
+          <Card
+            className={
+              message.type === "success"
+                ? "border-green-300 bg-green-50/80 text-green-800"
+                : "border-red-300 bg-red-50/80 text-red-800"
+            }
+          >
+            <CardContent className="py-3 text-sm flex justify-between items-center">
+              <span>{message.text}</span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 text-current hover:bg-black/5"
+                onClick={() => setMessage(null)}
+                aria-label="Закрыть уведомление"
+              >
+                ×
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      )}
       <h2 className="text-3xl sm:text-4xl font-black mb-6 gradient-text animate-gradient">
         Возвраты ({returns.length})
       </h2>

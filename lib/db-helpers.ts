@@ -1286,8 +1286,17 @@ export async function createAddress(data: {
 }
 
 export async function updateAddress(addressId: string, userId: string, data: Partial<Address>): Promise<Address> {
+  // Проверяем, что адрес принадлежит пользователю
+  const existing = await prisma.address.findFirst({
+    where: { id: addressId, userId }
+  })
+
+  if (!existing) {
+    throw new Error('Address not found')
+  }
+
   const updateData: any = {}
-  
+
   if (data.firstName !== undefined) updateData.firstName = data.firstName
   if (data.lastName !== undefined) updateData.lastName = data.lastName
   if (data.phone !== undefined) updateData.phone = data.phone
@@ -1296,37 +1305,28 @@ export async function updateAddress(addressId: string, userId: string, data: Par
   if (data.city !== undefined) updateData.city = data.city
   if (data.postalCode !== undefined) updateData.postalCode = data.postalCode
   if (data.street !== undefined) updateData.street = data.street
-  
+
   if (data.isDefault !== undefined) {
     if (data.isDefault) {
-      // Снимаем флаг с других адресов
-      const current = await prisma.address.findUnique({
-        where: { id: addressId },
-        select: { type: true }
+      // Снимаем флаг с других адресов этого же типа
+      await prisma.address.updateMany({
+        where: {
+          userId,
+          type: existing.type,
+          id: { not: addressId }
+        },
+        data: { isDefault: false }
       })
-      if (current) {
-        await prisma.address.updateMany({
-          where: {
-            userId,
-            type: current.type,
-            id: { not: addressId }
-          },
-          data: { isDefault: false }
-        })
-      }
     }
     updateData.isDefault = data.isDefault
   }
-  
+
   if (Object.keys(updateData).length === 0) {
     throw new Error('No fields to update')
   }
-  
+
   return await prisma.address.update({
-    where: {
-      id: addressId,
-      userId: userId
-    },
+    where: { id: addressId },
     data: updateData
   }) as Address
 }

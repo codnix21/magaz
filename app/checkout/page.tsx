@@ -83,6 +83,8 @@ export default function CheckoutPage() {
   const [shippingMethods, setShippingMethods] = useState<ShippingMethod[]>([])
   const [selectedShippingMethodId, setSelectedShippingMethodId] = useState<string | null>(null)
   const [orderComment, setOrderComment] = useState("")
+  const [addressError, setAddressError] = useState<string | null>(null)
+  const [shippingMethodError, setShippingMethodError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!session) {
@@ -174,6 +176,7 @@ export default function CheckoutPage() {
 
   const handleAddressSelect = (addressId: string) => {
     setSelectedAddressId(addressId)
+    setAddressError(null)
     const addr = addresses.find(a => a.id === addressId)
     if (addr) {
       setShippingAddress(formatAddress(addr))
@@ -208,10 +211,11 @@ export default function CheckoutPage() {
           postalCode: "",
           street: "",
         })
+        setAddressError(null)
       }
     } catch (error) {
       console.error("Error saving address:", error)
-      alert("Ошибка при сохранении адреса")
+      setAddressError("Не удалось сохранить адрес. Попробуйте позже.")
     }
   }
 
@@ -254,11 +258,12 @@ export default function CheckoutPage() {
         updateTotals(cartItems, data.promoCode, shippingCost)
       } else {
         const error = await response.json()
-        alert(error.error || "Неверный промокод")
+        // TODO: заменить на красивый UI-бэйдж/тост, сейчас просто лог
+        console.error("Promo code error:", error.error || "Неверный промокод")
       }
     } catch (error) {
       console.error("Error applying promo code:", error)
-      alert("Ошибка при применении промокода")
+      // TODO: заменить на пользовательское уведомление
     } finally {
       setPromoLoading(false)
     }
@@ -272,12 +277,15 @@ export default function CheckoutPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setAddressError(null)
+    setShippingMethodError(null)
+
     if (!shippingAddress.trim()) {
-      alert("Пожалуйста, укажите адрес доставки")
+      setAddressError("Пожалуйста, выберите или добавьте адрес доставки")
       return
     }
     if (!selectedShippingMethodId) {
-      alert("Пожалуйста, выберите способ доставки")
+      setShippingMethodError("Пожалуйста, выберите способ доставки")
       return
     }
 
@@ -323,11 +331,11 @@ export default function CheckoutPage() {
               return
             } else {
               const error = await paymentResponse.json()
-              alert(error.error || "Ошибка при создании платежа. Заказ создан, вы сможете оплатить его позже.")
+              console.error("Payment creation error:", error.error || "Ошибка при создании платежа")
             }
           } catch (paymentError) {
             console.error("Error creating payment:", paymentError)
-            alert("Ошибка при создании платежа. Заказ создан, вы сможете оплатить его позже.")
+            // TODO: можно подсветить блок оплаты, сейчас только лог
           } finally {
             setProcessingPayment(false)
           }
@@ -337,11 +345,11 @@ export default function CheckoutPage() {
         router.push(`/orders?order=${order.id}&status=created`)
       } else {
         const error = await response.json()
-        alert(error.error || "Ошибка при оформлении заказа")
+        console.error("Order creation error:", error.error || "Ошибка при оформлении заказа")
       }
     } catch (error) {
       console.error("Error creating order:", error)
-      alert("Ошибка при оформлении заказа")
+      // TODO: добавить пользовательское уведомление
     } finally {
       setSubmitting(false)
     }
@@ -583,6 +591,11 @@ export default function CheckoutPage() {
                     onChange={(e) => setShippingAddress(e.target.value)}
                     rows={3}
                   />
+                  {addressError && (
+                    <p className="text-xs text-red-600 mt-1">
+                      {addressError}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -637,6 +650,11 @@ export default function CheckoutPage() {
                   </div>
                 ) : (
                   <p className="text-sm text-muted-foreground">Загрузка способов доставки...</p>
+                )}
+                {shippingMethodError && (
+                  <p className="text-xs text-red-600 mt-1">
+                    {shippingMethodError}
+                  </p>
                 )}
               </div>
 

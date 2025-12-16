@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
-import { findAddressById, updateAddress, deleteAddress } from "@/lib/db-helpers"
+import { updateAddress, deleteAddress } from "@/lib/db-helpers"
 
 export async function PUT(
   request: Request,
@@ -126,8 +126,16 @@ export async function PUT(
     const address = await updateAddress(params.id.trim(), session.user.id, updates)
 
     return NextResponse.json(address)
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error updating address:", error)
+
+    if (error?.message === 'Address not found') {
+      return NextResponse.json(
+        { error: "Address not found" },
+        { status: 404 }
+      )
+    }
+
     return NextResponse.json(
       { error: "Failed to update address" },
       { status: 500 }
@@ -136,7 +144,7 @@ export async function PUT(
 }
 
 export async function DELETE(
-  request: Request,
+  _request: Request,
   { params }: { params: { id: string } }
 ) {
   try {

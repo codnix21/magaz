@@ -146,7 +146,7 @@ export default function ProductPage() {
     }
 
     if (!product?.id) {
-      alert("Ошибка: товар не найден")
+      console.error("Ошибка: товар не найден")
       return
     }
 
@@ -164,14 +164,15 @@ export default function ProductPage() {
 
       if (response.ok) {
         await refreshCart()
-        alert("Товар добавлен в корзину!")
+        // TODO: заменить на toast/баннер успеха
+        console.info("Товар добавлен в корзину")
       } else {
         const errorData = await response.json().catch(() => ({}))
-        alert(errorData.error || "Ошибка при добавлении товара в корзину")
+        console.error("Add to cart error:", errorData.error || "Ошибка при добавлении товара в корзину")
       }
     } catch (error) {
       console.error("Error adding to cart:", error)
-      alert("Ошибка при добавлении товара в корзину")
+      // TODO: добавить пользовательское уведомление
     } finally {
       setAdding(false)
     }
